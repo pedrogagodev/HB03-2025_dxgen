@@ -1,7 +1,7 @@
 import prompts from "prompts";
-import type { InitAnswers } from "../types/init.types";
+import type { GenerateAnswers } from "../types/generate.types";
 
-export async function getInitAnswers(): Promise<InitAnswers | null> {
+export async function getGenerateAnswers(): Promise<GenerateAnswers | null> {
   try {
     const answers = await prompts(
       [
@@ -41,7 +41,7 @@ export async function getInitAnswers(): Promise<InitAnswers | null> {
       return null;
     }
 
-    return answers as InitAnswers;
+    return answers as GenerateAnswers;
   } catch (error) {
     console.error("Error executing prompts:", error);
     process.exit(1);

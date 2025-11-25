@@ -1,11 +1,11 @@
 import { Command } from "commander";
-import { getInitAnswers } from "../prompts/init.prompts";
+import { getGenerateAnswers } from "../prompts/generate.prompts";
 
-export const initCommand = new Command("init").description(
-  "Initialize a new project",
+export const generateCommand = new Command("generate").description(
+  "Generate documentation for a project",
 );
 
-initCommand.action(async () => {
+generateCommand.action(async () => {
   if (!process.stdin.isTTY) {
     console.error("Error: This command requires an interactive terminal.");
     console.error(
@@ -14,7 +14,7 @@ initCommand.action(async () => {
     process.exit(1);
   }
 
-  const answers = await getInitAnswers();
+  const answers = await getGenerateAnswers();
 
   if (!answers) {
     console.log("No answer received.");
