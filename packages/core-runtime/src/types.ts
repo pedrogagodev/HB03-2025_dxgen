@@ -1,11 +1,11 @@
-export type WizardDocType =
-  | "auto"
-  | "readme"
-  | "repoSummary"
-  | "architectureDiagram"
-  | "apiDocs";
+export type WizardFeature = "readme" | "api-docs" | "diagram" | "summary";
 
-export type DocStyle = "onboarding" | "technical" | "mixed";
+/**
+ * Estilo desejado da documentação.
+ * No CLI atual esse valor vem como texto livre (ex.: "onboarding", "técnica"),
+ * então mantemos como string para máxima flexibilidade.
+ */
+export type DocStyle = string;
 
 export interface WizardAnswers {
   /**
@@ -15,16 +15,16 @@ export interface WizardAnswers {
   outputDir: string;
 
   /**
-   * Tipo de documentação desejada.
-   * Quando "auto", o grafo/IA decide com base no contexto.
+   * Quais tipos de documentação o usuário deseja gerar.
+   * Mapeia diretamente as escolhas do wizard de CLI.
    */
-  docType: WizardDocType;
+  features: WizardFeature[];
 
   /**
-   * Estilo de documentação desejado.
-   * Ex.: onboarding para novos devs, mais técnica, etc.
+   * Texto livre descrevendo o estilo desejado para a documentação.
+   * Ex.: "onboarding para novos devs", "documentação técnica", etc.
    */
-  docStyle: DocStyle;
+  style: DocStyle;
 }
 
 export interface ProjectMetadata {
@@ -53,11 +53,7 @@ export interface GenerateRequest {
   project: ProjectMetadata;
 }
 
-export type FinalDocKind =
-  | "readme"
-  | "repoSummary"
-  | "architectureDiagram"
-  | "apiDocs";
+export type FinalDocKind = "readme" | "api-docs" | "diagram" | "summary";
 
 export interface GenerateResult {
   /**
