@@ -1,0 +1,25 @@
+import { Command } from "commander";
+import { getGenerateAnswers } from "../prompts/generate.prompts";
+
+export const generateCommand = new Command("generate").description(
+  "Generate documentation for a project",
+);
+
+generateCommand.action(async () => {
+  if (!process.stdin.isTTY) {
+    console.error("Error: This command requires an interactive terminal.");
+    console.error(
+      "Please execute the command directly in the terminal, not through pipes or redirection.",
+    );
+    process.exit(1);
+  }
+
+  const answers = await getGenerateAnswers();
+
+  if (!answers) {
+    console.log("No answer received.");
+    return;
+  }
+
+  console.log(answers);
+});
