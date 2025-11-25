@@ -1,14 +1,9 @@
 import type {
+  DetectedStack,
   FinalDocKind,
   GenerateRequest,
   GenerateResult,
 } from "core-runtime";
-
-export interface DetectedStack {
-  language: "ts" | "js" | "py" | "go" | "other";
-  framework?: string; // ex: "next", "express", "fastify"
-  notes?: string; // descrição livre
-}
 
 export interface GraphState {
   request: GenerateRequest;
