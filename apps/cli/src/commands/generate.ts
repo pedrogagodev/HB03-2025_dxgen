@@ -1,4 +1,4 @@
-import { runGenerateGraph } from "@dxgen/agent-graph";
+import * as agentGraph from "@dxgen/agent-graph";
 import { Command } from "commander";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
@@ -24,6 +24,16 @@ generateCommand.action(async () => {
   }
 
   const request = mapGenerateAnswersToRequest(answers);
+
+  const { runGenerateGraph } = agentGraph as {
+    runGenerateGraph: (
+      req: ReturnType<typeof mapGenerateAnswersToRequest>,
+    ) => Promise<{
+      kind: string;
+      suggestedPath: string;
+      content: string;
+    }>;
+  };
 
   const result = await runGenerateGraph(request);
 
