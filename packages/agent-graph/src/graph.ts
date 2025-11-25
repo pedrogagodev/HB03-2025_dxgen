@@ -4,14 +4,27 @@ import { StateGraph } from "@langchain/langgraph";
 import { runApiDocsAgent } from "agents-api-docs";
 import { runDiagramsAgent } from "agents-diagrams";
 import { runReadmeAgent } from "agents-readme";
-import type { FinalDocKind, WizardFeature } from "core-runtime";
+import type {
+  FinalDocKind,
+  GenerateRequest,
+  GenerateResult,
+  WizardFeature,
+} from "core-runtime";
+import { detectStack } from "core-runtime";
 import { classifyIntentWithLLM } from "./chains/intentClassifier.chain";
 import type { GraphState } from "./types";
 
-// TODO: implementar detecção real de stack usando LangChain.
 async function detectStackNode(state: GraphState): Promise<GraphState> {
-  // Mantemos como stub por enquanto, apenas retornando o estado original.
-  return state;
+  try {
+    const stack = await detectStack(state.request.project);
+    return {
+      ...state,
+      stack,
+    };
+  } catch {
+    // Em caso de erro de IO ou parsing, seguimos sem stack detectada.
+    return state;
+  }
 }
 
 async function intentClassifierNode(state: GraphState): Promise<GraphState> {
@@ -128,4 +141,20 @@ export function createGenerateGraph() {
   builder.addEdge("summaryAgent", "__end__");
 
   return builder.compile();
+}
+
+const app = createGenerateGraph();
+
+export async function runGenerateGraph(
+  request: GenerateRequest,
+): Promise<GenerateResult> {
+  const finalState = (await (app as any).invoke({
+    request,
+  })) as { result?: GenerateResult };
+
+  if (!finalState.result) {
+    throw new Error("Graph finished without a result");
+  }
+
+  return finalState.result;
 }
