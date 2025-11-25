@@ -12,4 +12,4 @@ program
 
 program.addCommand(generateCommand);
 
-program.parse();
+program.parse(process.argv);
