@@ -7,15 +7,5 @@
         "build": "tsc -b",
         "dev": "tsc --watch"
     },
-    "private": true,
-    "dependencies": {
-        "@agent-graph/core": "workspace:*",
-        "@agent-graph/types": "workspace:*",
-        "@agent-graph/utils": "workspace:*",
-        "@agent-graph/cli": "workspace:*",
-        "@agent-graph/agent": "workspace:*",
-        "@agent-graph/agent-types": "workspace:*",
-        "@agent-graph/agent-utils": "workspace:*",
-        "@agent-graph/agent-cli": "workspace:*"
-    }
+    "private": true
 }
