@@ -1,10 +1,13 @@
-console.log("DXGen CLI - AI Documentation Agent");
-console.log("Version: 0.0.1");
+import { Command } from "commander";
+import { initCommand } from "./commands/init";
 
-// TODO: Implement CLI commands based on architecture
-// Commands:
-// - docai init
-// - docai readme
-// - docai api-docs
-// - docai diagram
-// - docai summarize
+const program = new Command();
+
+program
+  .name('dxgen')
+  .description('AI Documentation Agent - CLI-first tool for generating documentation')
+  .version('0.0.1');
+
+program.addCommand(initCommand)
+
+program.parse();
