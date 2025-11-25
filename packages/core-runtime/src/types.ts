@@ -73,3 +73,9 @@ export interface GenerateResult {
    */
   suggestedPath: string;
 }
+
+export interface DetectedStack {
+  language: "ts" | "js" | "py" | "go" | "other";
+  framework?: string;
+  notes?: string;
+}
