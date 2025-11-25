@@ -1,0 +1,14 @@
+{
+  "name": "@dxgen/cli",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "dxgen": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "lint": "biome check ."
+  }
+}
