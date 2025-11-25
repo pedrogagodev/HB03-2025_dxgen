@@ -4,7 +4,10 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
-        "core-runtime": "1.0.0"
+        "core-runtime": "1.0.0",
+        "agents-readme": "1.0.0",
+        "agents-api-docs": "1.0.0",
+        "agents-diagrams": "1.0.0"
     },
     "scripts": {
         "build": "tsc -b",
