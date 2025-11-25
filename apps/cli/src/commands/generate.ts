@@ -1,4 +1,6 @@
+import * as agentGraph from "@dxgen/agent-graph";
 import { Command } from "commander";
+import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
 
 export const generateCommand = new Command("generate").description(
@@ -21,5 +23,24 @@ generateCommand.action(async () => {
     return;
   }
 
-  console.log(answers);
+  const request = mapGenerateAnswersToRequest(answers);
+
+  const { runGenerateGraph } = agentGraph as {
+    runGenerateGraph: (
+      req: ReturnType<typeof mapGenerateAnswersToRequest>,
+    ) => Promise<{
+      kind: string;
+      suggestedPath: string;
+      content: string;
+    }>;
+  };
+
+  const result = await runGenerateGraph(request);
+
+  // Por enquanto apenas mostra o resultado no terminal.
+  // Falta integrar com o package `writers` para salvar em arquivos.
+  console.log("\nGenerated documentation kind:", result.kind);
+  console.log("Suggested path:", result.suggestedPath);
+  console.log("\n----- Generated content (preview) -----\n");
+  console.log(result.content);
 });

@@ -1,0 +1,25 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src",
+        "composite": true
+    },
+    "references": [
+        {
+            "path": "../core-runtime"
+        },
+        {
+            "path": "../agents-readme"
+        },
+        {
+            "path": "../agents-api-docs"
+        },
+        {
+            "path": "../agents-diagrams"
+        }
+    ],
+    "include": [
+        "src"
+    ]
+}

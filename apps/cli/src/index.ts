@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Command } from "commander";
 import { generateCommand } from "./commands/generate";
 
@@ -12,4 +13,4 @@ program
 
 program.addCommand(generateCommand);
 
-program.parse();
+program.parse(process.argv);
