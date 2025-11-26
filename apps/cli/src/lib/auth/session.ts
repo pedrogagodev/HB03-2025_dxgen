@@ -32,8 +32,7 @@ export async function readSessionFile(): Promise<string | null> {
 export async function deleteSessionFile() {
   try {
     await fs.unlink(SESSION_FILE);
-  } catch {
-  }
+  } catch {}
 }
 
 export function getSessionFilePath(): string {
