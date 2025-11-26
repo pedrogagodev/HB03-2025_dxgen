@@ -7,7 +7,8 @@
         "core-runtime": "1.0.0",
         "agents-readme": "1.0.0",
         "agents-api-docs": "1.0.0",
-        "agents-diagrams": "1.0.0"
+        "agents-diagrams": "1.0.0",
+        "agents-summary": "1.0.0"
     },
     "scripts": {
         "build": "tsc -b",
