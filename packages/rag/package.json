@@ -1,0 +1,27 @@
+{
+  "name": "@dxgen/rag",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsx watch src/index.ts",
+    "lint": "biome check src",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "langchain": "^1.1.1",
+    "@langchain/openai": "^1.1.3",
+    "@langchain/textsplitters": "^1.0.1",
+    "@pinecone-database/pinecone": "^6.1.3",
+    "fdir": "^6.5.0",
+    "globby": "^16.0.0"
+  }
+}
