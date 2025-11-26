@@ -1,4 +1,4 @@
-import * as agentGraph from "@dxgen/agent-graph";
+import * as agentGraph from "@dxgen/agent-orchestrator";
 import type { GenerateResult } from "@dxgen/core-runtime";
 import { Command } from "commander";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
