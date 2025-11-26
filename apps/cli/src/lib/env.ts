@@ -18,13 +18,27 @@ export function loadEnv(): void {
     resolve(import.meta.dirname, "../../../../.env"),
   ];
 
+  let loaded = false;
   for (const envPath of envPaths) {
     if (existsSync(envPath)) {
       dotenv.config({ path: envPath });
       envLoaded = true;
+      loaded = true;
       return;
     }
   }
 
+  if (!loaded && process.env.NODE_ENV !== "production") {
+    console.warn("⚠️  No .env file found. Using environment variables only.");
+  }
+
   envLoaded = true;
+}
+
+export function __resetEnvLoaded(): void {
+  envLoaded = false;
+}
+
+export function isEnvLoaded(): boolean {
+  return envLoaded;
 }
