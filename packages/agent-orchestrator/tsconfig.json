@@ -17,6 +17,9 @@
         },
         {
             "path": "../agents-diagrams"
+        },
+        {
+            "path": "../agents-summary"
         }
     ],
     "include": [

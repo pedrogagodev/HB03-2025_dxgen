@@ -1,4 +1,5 @@
-import * as agentGraph from "@dxgen/agent-graph";
+import * as agentGraph from "@dxgen/agent-orchestrator";
+import type { GenerateResult } from "@dxgen/core-runtime";
 import { Command } from "commander";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
@@ -28,19 +29,23 @@ generateCommand.action(async () => {
   const { runGenerateGraph } = agentGraph as {
     runGenerateGraph: (
       req: ReturnType<typeof mapGenerateAnswersToRequest>,
-    ) => Promise<{
-      kind: string;
-      suggestedPath: string;
-      content: string;
-    }>;
+    ) => Promise<GenerateResult[]>;
   };
 
-  const result = await runGenerateGraph(request);
+  const results = await runGenerateGraph(request);
 
-  // Por enquanto apenas mostra o resultado no terminal.
+  if (!results.length) {
+    console.log("No documentation was generated.");
+    return;
+  }
+
+  // Por enquanto apenas mostra o(s) resultado(s) no terminal.
   // Falta integrar com o package `writers` para salvar em arquivos.
-  console.log("\nGenerated documentation kind:", result.kind);
-  console.log("Suggested path:", result.suggestedPath);
-  console.log("\n----- Generated content (preview) -----\n");
-  console.log(result.content);
+  for (const result of results) {
+    console.log("\nGenerated documentation kind:", result.kind);
+    console.log("Suggested path:", result.suggestedPath);
+    console.log("\n----- Generated content (preview) -----\n");
+    console.log(result.content);
+    console.log("\n========================================\n");
+  }
 });
