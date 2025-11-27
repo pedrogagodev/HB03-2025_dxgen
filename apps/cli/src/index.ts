@@ -1,10 +1,9 @@
 import { Command } from "commander";
-
 import { generateCommand } from "./commands/generate";
 import { loginCommand } from "./commands/login";
 import { logoutCommand } from "./commands/logout";
 import { statusCommand } from "./commands/status";
-import { requireAuth } from "./lib/auth";
+import { handleAuthenticationError, requireAuth } from "./lib/auth";
 import { loadEnv } from "./lib/env";
 
 const program = new Command();
@@ -25,11 +24,14 @@ program.hook("preAction", async (_thisCommand, actionCommand) => {
 
   if (exemptCommands.includes(commandName)) {
     return;
-  } 
+  }
 
-  const user = await requireAuth();
-
-  actionCommand.setOptionValue("__authenticatedUser", user);
+  try {
+    const user = await requireAuth();
+    actionCommand.setOptionValue("__authenticatedUser", user);
+  } catch (error) {
+    handleAuthenticationError(error);
+  }
 });
 
 program.addCommand(loginCommand);
