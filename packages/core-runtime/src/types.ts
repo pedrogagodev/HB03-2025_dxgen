@@ -15,10 +15,15 @@ export interface WizardAnswers {
   outputDir: string;
 
   /**
+   * Se o usuário deseja sincronizar o projeto com o Pinecone.
+   */
+  sync: boolean;
+
+  /**
    * Quais tipos de documentação o usuário deseja gerar.
    * Mapeia diretamente as escolhas do wizard de CLI.
    */
-  features: WizardFeature[];
+  feature: WizardFeature;
 
   /**
    * Texto livre descrevendo o estilo desejado para a documentação.
