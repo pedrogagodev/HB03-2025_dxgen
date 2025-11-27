@@ -59,7 +59,7 @@ generateCommand.action(async (_options, command) => {
 
   if (!answers) {
     console.log("No answer received.");
-    return;
+    process.exit(0);
   }
 
   const request = mapGenerateAnswersToRequest(answers);
@@ -74,7 +74,7 @@ generateCommand.action(async (_options, command) => {
 
   if (!results.length) {
     console.log("No documentation was generated.");
-    return;
+    process.exit(0);
   }
 
   // Por enquanto apenas mostra o(s) resultado(s) no terminal.
@@ -111,4 +111,6 @@ generateCommand.action(async (_options, command) => {
     console.warn("Your documentation was generated successfully.");
     console.warn(`Error: ${(error as Error).message}\n`);
   }
+
+  process.exit(0);
 });
