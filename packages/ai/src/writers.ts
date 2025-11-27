@@ -1,6 +1,6 @@
-import { promises as fs } from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
-import type { GenerateRequest, GenerateResult } from "@repo/ai";
+import type { GenerateRequest, GenerateResult } from "./types";
 
 export interface WriteFileOptions {
   /**

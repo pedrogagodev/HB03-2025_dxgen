@@ -1,9 +1,9 @@
-import { runGenerateCommand } from "@repo/ai";
-import { buildRagQuery, runRagPipeline } from "@repo/rag";
 import {
   createPromptFileExistsHandler,
+  runGenerateCommand,
   writeDocumentationFile,
-} from "@repo/writers";
+} from "@repo/ai";
+import { buildRagQuery, runRagPipeline } from "@repo/rag";
 import type { User } from "@supabase/supabase-js";
 import { Command } from "commander";
 import { checkUsageLimits, incrementUsage } from "../lib/usage";
@@ -104,7 +104,7 @@ generateCommand.action(async (_options, command) => {
     process.exit(0);
   }
 
-  // Escreve o arquivo usando o pacote @writers
+  // Escreve o arquivo usando o pacote @repo/ai
   const writeResult = await writeDocumentationFile(request, result, {
     onFileExists: await createPromptFileExistsHandler(),
   });
