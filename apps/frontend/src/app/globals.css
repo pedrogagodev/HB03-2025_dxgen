@@ -5,6 +5,46 @@
   --foreground: #e2e8f0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fade-in animation for sections */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+/* Staggered delays for children */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+/* Glow pulse for CTA buttons */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.9);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -35,32 +75,159 @@ body {
     "Segoe UI", sans-serif;
 }
 
-.starfield {
+/* Animated grid background */
+.grid-bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(2px 2px at 10% 20%, rgba(248, 250, 252, 0.7), transparent),
-    radial-gradient(1px 1px at 80% 10%, rgba(148, 163, 184, 0.7), transparent),
-    radial-gradient(1.5px 1.5px at 30% 80%, rgba(148, 163, 184, 0.6), transparent),
-    radial-gradient(1.2px 1.2px at 60% 40%, rgba(226, 232, 240, 0.6), transparent);
-  opacity: 0.8;
   z-index: 0;
+  background-image: 
+    linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  animation: grid-pulse 8s ease-in-out infinite;
 }
 
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* Floating code particles */
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  color: rgba(16, 185, 129, 0.15);
+  animation: float-up 20s linear infinite;
+  white-space: nowrap;
+}
+
+.particle:nth-child(2) { left: 15%; animation-delay: -3s; animation-duration: 25s; color: rgba(56, 189, 248, 0.12); }
+.particle:nth-child(3) { left: 30%; animation-delay: -7s; animation-duration: 22s; }
+.particle:nth-child(4) { left: 45%; animation-delay: -2s; animation-duration: 28s; color: rgba(139, 92, 246, 0.12); }
+.particle:nth-child(5) { left: 60%; animation-delay: -5s; animation-duration: 24s; }
+.particle:nth-child(6) { left: 75%; animation-delay: -9s; animation-duration: 26s; color: rgba(56, 189, 248, 0.12); }
+.particle:nth-child(7) { left: 88%; animation-delay: -4s; animation-duration: 21s; }
+.particle:nth-child(8) { left: 5%; animation-delay: -11s; animation-duration: 30s; color: rgba(139, 92, 246, 0.12); }
+
+@keyframes float-up {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% {
+    transform: translateY(-100vh) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+/* Glowing orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orb-float 12s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  left: 10%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 350px;
+  height: 350px;
+  top: 20%;
+  right: 5%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+  animation-delay: -4s;
+  animation-duration: 15s;
+}
+
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  bottom: 10%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  animation-delay: -8s;
+  animation-duration: 18s;
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(20px, 20px) scale(1.02); }
+}
+
+/* Code background image overlay */
+.code-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'%3E%3Ctext x='20' y='40' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3Econst dxgen = require('dxgen');%3C/text%3E%3Ctext x='20' y='60' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E%3C/text%3E%3Ctext x='20' y='80' font-family='monospace' font-size='11' fill='%2310b981' opacity='0.05'%3E// Generate documentation%3C/text%3E%3Ctext x='20' y='100' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3Eawait dxgen.init(%7B%3C/text%3E%3Ctext x='20' y='120' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E  source: './src',%3C/text%3E%3Ctext x='20' y='140' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E  output: './docs',%3C/text%3E%3Ctext x='20' y='160' font-family='monospace' font-size='11' fill='%2338bdf8' opacity='0.05'%3E  format: 'markdown'%3C/text%3E%3Ctext x='20' y='180' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E%7D);%3C/text%3E%3Ctext x='400' y='300' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3Eexport interface DocConfig %7B%3C/text%3E%3Ctext x='400' y='320' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3E  agents: Agent[];%3C/text%3E%3Ctext x='400' y='340' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3E  llm: LLMProvider;%3C/text%3E%3Ctext x='400' y='360' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3E%7D%3C/text%3E%3Ctext x='600' y='500' font-family='monospace' font-size='11' fill='%238b5cf6' opacity='0.04'%3E%3C!-- AI-ready docs --%3E%3C/text%3E%3C/svg%3E") top left / 800px 600px repeat;
+  opacity: 0.6;
+}
+
+/* Aurora overlay - improved */
 .aurora-overlay {
   position: fixed;
-  inset: auto 0 0;
-  height: 40vh;
+  inset: 0;
   pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 0%,
-    rgba(45, 212, 191, 0.3),
-    rgba(15, 23, 42, 0.1) 55%,
-    transparent 70%
-  );
-  filter: blur(16px);
-  opacity: 0.9;
   z-index: 0;
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 30%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+  animation: aurora-shift 20s ease-in-out infinite;
+}
+
+@keyframes aurora-shift {
+  0%, 100% { opacity: 0.8; filter: hue-rotate(0deg); }
+  50% { opacity: 1; filter: hue-rotate(15deg); }
+}
+
+/* Scan line effect */
+.scanline {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(16, 185, 129, 0.03) 50%,
+    transparent 100%
+  );
+  background-size: 100% 4px;
+  animation: scanline-move 8s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes scanline-move {
+  0% { background-position: 0 -100vh; }
+  100% { background-position: 0 100vh; }
 }
 
 .glass-surface {
