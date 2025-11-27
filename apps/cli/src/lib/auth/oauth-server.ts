@@ -12,6 +12,7 @@ export interface OAuthTokens {
 export interface OAuthServer {
   port: number;
   callbackUrl: string;
+  useFrontend: boolean;
   waitForCallback: () => Promise<OAuthTokens>;
   close: () => void;
 }
@@ -35,6 +36,23 @@ async function findAvailablePort(startPort: number): Promise<number> {
       }
     });
   });
+}
+
+async function isFrontendAvailable(frontendUrl: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000); // 1s timeout
+
+    const response = await fetch(frontendUrl, {
+      method: "HEAD",
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 const SUCCESS_HTML = `
@@ -124,7 +142,19 @@ export async function startOAuthServer(
   preferredPort = 54321,
 ): Promise<OAuthServer> {
   const port = await findAvailablePort(preferredPort);
-  const callbackUrl = `http://localhost:${port}/callback`;
+  const localCallbackUrl = `http://localhost:${port}/callback`;
+
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const useFrontend = await isFrontendAvailable(frontendUrl);
+
+  let callbackUrl: string;
+  if (useFrontend) {
+    callbackUrl = `${frontendUrl}/auth/callback?port=${port}`;
+    console.log(`Using frontend OAuth pages at ${frontendUrl}`);
+  } else {
+    callbackUrl = localCallbackUrl;
+    console.log("Frontend not available, using embedded OAuth pages");
+  }
 
   let server: Server;
   let resolveCallback: (tokens: OAuthTokens) => void;
@@ -136,6 +166,15 @@ export async function startOAuthServer(
   });
 
   server = createServer((req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
     if (req.url === "/callback/tokens" && req.method === "POST") {
       let body = "";
       req.on("data", (chunk) => {
@@ -282,6 +321,7 @@ export async function startOAuthServer(
   return {
     port,
     callbackUrl,
+    useFrontend,
     waitForCallback: () => callbackPromise,
     close: () => {
       server.close();
