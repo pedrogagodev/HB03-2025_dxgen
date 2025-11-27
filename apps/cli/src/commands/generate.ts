@@ -6,7 +6,6 @@ import { checkUsageLimits, incrementUsage } from "../lib/usage";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
 
-
 export const generateCommand = new Command("generate").description(
   "Generate documentation for a project",
 );
@@ -94,7 +93,7 @@ generateCommand.action(async (_options, command) => {
   console.log("documents: ", JSON.stringify(documents, null, 2));
   console.log({ syncSummary });
 
-  const result = await runGenerateCommand(request); // langchain.llm
+  const result = await runGenerateCommand(request, { documents }); // langchain.llm
 
   if (!result) {
     console.log("No documentation was generated.");
