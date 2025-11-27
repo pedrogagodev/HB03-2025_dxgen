@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.0",
-    "agent-orchestrator": "1.0.0",
+    "@repo/agent-orchestrator": "1.0.0",
     "commander": "^14.0.2",
     "dotenv": "^16.4.5",
     "open": "^10.1.0",

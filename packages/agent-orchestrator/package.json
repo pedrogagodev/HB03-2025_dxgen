@@ -1,14 +1,15 @@
 {
-    "name": "agent-orchestrator",
+    "name": "@repo/agent-orchestrator",
     "version": "1.0.0",
+    "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "dependencies": {
-        "core-runtime": "1.0.0",
-        "agents-readme": "1.0.0",
-        "agents-api-docs": "1.0.0",
-        "agents-diagrams": "1.0.0",
-        "agents-summary": "1.0.0"
+        "@repo/core-runtime": "1.0.0",
+        "@repo/agents-readme": "1.0.0",
+        "@repo/agents-api-docs": "1.0.0",
+        "@repo/agents-diagrams": "1.0.0",
+        "@repo/agents-summary": "1.0.0"
     },
     "scripts": {
         "build": "tsc -b",

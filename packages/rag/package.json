@@ -1,5 +1,5 @@
 {
-  "name": "@dxgen/rag",
+  "name": "@repo/rag",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -11,17 +11,18 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts",
+    "build": "tsup src/index.ts --format esm --dts --tsconfig tsconfig.build.json",
     "dev": "tsx watch src/index.ts",
     "lint": "biome check src",
     "test": "vitest"
   },
   "dependencies": {
-    "langchain": "^1.1.1",
     "@langchain/openai": "^1.1.3",
     "@langchain/textsplitters": "^1.0.1",
     "@pinecone-database/pinecone": "^6.1.3",
+    "dotenv": "^17.2.3",
     "fdir": "^6.5.0",
-    "globby": "^16.0.0"
+    "globby": "^16.0.0",
+    "langchain": "^1.1.1"
   }
 }

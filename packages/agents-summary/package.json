@@ -1,6 +1,7 @@
 {
-    "name": "agents-summary",
+    "name": "@repo/agents-summary",
     "version": "1.0.0",
+    "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {

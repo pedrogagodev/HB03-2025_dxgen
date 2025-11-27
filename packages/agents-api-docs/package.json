@@ -1,6 +1,7 @@
 {
-    "name": "agents-api-docs",
+    "name": "@repo/agents-api-docs",
     "version": "1.0.0",
+    "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
