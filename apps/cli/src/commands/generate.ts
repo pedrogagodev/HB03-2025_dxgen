@@ -1,5 +1,9 @@
 import { runGenerateCommand } from "@repo/ai";
 import { buildRagQuery, runRagPipeline } from "@repo/rag";
+import {
+  createPromptFileExistsHandler,
+  writeDocumentationFile,
+} from "@repo/writers";
 import type { User } from "@supabase/supabase-js";
 import { Command } from "commander";
 import { checkUsageLimits, incrementUsage } from "../lib/usage";
@@ -84,7 +88,7 @@ generateCommand.action(async (_options, command) => {
       fullReindex: request.wizard.sync,
     },
     retrieverOptions: {
-      topK: 20,
+      topK: 50,
     },
   });
 
@@ -100,13 +104,19 @@ generateCommand.action(async (_options, command) => {
     process.exit(0);
   }
 
-  // Por enquanto apenas mostra o(s) resultado(s) no terminal.
-  // Falta integrar com o package `writers` para salvar em arquivos.
-  console.log("\nGenerated documentation kind:", result.kind);
-  console.log("Suggested path:", result.suggestedPath);
-  console.log("\n----- Generated content (preview) -----\n");
-  console.log(result.content);
-  console.log("\n========================================\n");
+  // Escreve o arquivo usando o pacote @writers
+  const writeResult = await writeDocumentationFile(request, result, {
+    onFileExists: await createPromptFileExistsHandler(),
+  });
+
+  if (!writeResult.success) {
+    console.error(`\n❌ Erro ao escrever arquivo: ${writeResult.error}`);
+    console.error(`Caminho: ${writeResult.filePath}\n`);
+    process.exit(1);
+  }
+
+  console.log(`\n✅ Documentação salva com sucesso!`);
+  console.log(`📄 Arquivo: ${writeResult.filePath}\n`);
 
   try {
     const usageResult = await incrementUsage(user.id);

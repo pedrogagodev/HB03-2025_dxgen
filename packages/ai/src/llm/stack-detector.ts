@@ -21,8 +21,8 @@ export async function detectStack(
   stackCache.clearExpired();
 
   const context = formatContext(documents, {
-    maxEntries: 10,
-    maxCharsPerEntry: 900,
+    maxEntries: 20,
+    maxCharsPerEntry: 2_000,
   });
 
   const prompt = [
@@ -52,7 +52,7 @@ export async function detectStack(
   try {
     const response = await invokeLLM({
       prompt,
-      maxContextTokens: 2_000,
+      maxContextTokens: 5_000,
     });
 
     const content = extractContent(response);

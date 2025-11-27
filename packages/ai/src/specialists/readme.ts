@@ -84,14 +84,14 @@ export async function createReadme(args: {
 
   const context =
     documents.length > 0
-      ? formatContext(documents, { maxEntries: 12, maxCharsPerEntry: 1_500 })
+      ? formatContext(documents, { maxEntries: 30, maxCharsPerEntry: 3_000 })
       : "";
 
   try {
     const response = await invokeLLM({
       prompt,
       context,
-      maxContextTokens: 8_000,
+      maxContextTokens: 20_000,
     });
 
     const content = extractContent(response);
