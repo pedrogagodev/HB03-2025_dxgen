@@ -1,10 +1,11 @@
-import * as agentGraph from "@dxgen/agent-orchestrator";
-import type { GenerateResult } from "@dxgen/core-runtime";
+import { runGenerateCommand } from "@repo/ai";
+import { buildRagQuery, runRagPipeline } from "@repo/rag";
 import type { User } from "@supabase/supabase-js";
 import { Command } from "commander";
 import { checkUsageLimits, incrementUsage } from "../lib/usage";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
+
 
 export const generateCommand = new Command("generate").description(
   "Generate documentation for a project",
@@ -63,29 +64,50 @@ generateCommand.action(async (_options, command) => {
   }
 
   const request = mapGenerateAnswersToRequest(answers);
+  console.log({ request });
 
-  const { runGenerateGraph } = agentGraph as {
-    runGenerateGraph: (
-      req: ReturnType<typeof mapGenerateAnswersToRequest>,
-    ) => Promise<GenerateResult[]>;
-  };
+  // Run the pipeline
+  const queryToFindRelevantFiles = buildRagQuery(request);
 
-  const results = await runGenerateGraph(request);
+  const { documents, syncSummary } = await runRagPipeline({
+    rootDir: process.cwd(),
+    query: queryToFindRelevantFiles,
+    pinecone: {
+      index: "dxgen-docs",
+      apiKey: process.env.PINECONE_API_KEY,
+    },
+    context: {
+      userId: user.id,
+      projectId: request.project.rootPath,
+    },
+    sync: {
+      enabled: request.wizard.sync,
+      fullReindex: request.wizard.sync,
+    },
+    retrieverOptions: {
+      topK: 20,
+    },
+  });
 
-  if (!results.length) {
+  console.log({ queryToFindRelevantFiles });
+
+  console.log("documents: ", JSON.stringify(documents, null, 2));
+  console.log({ syncSummary });
+
+  const result = await runGenerateCommand(request); // langchain.llm
+
+  if (!result) {
     console.log("No documentation was generated.");
     return;
   }
 
   // Por enquanto apenas mostra o(s) resultado(s) no terminal.
   // Falta integrar com o package `writers` para salvar em arquivos.
-  for (const result of results) {
-    console.log("\nGenerated documentation kind:", result.kind);
-    console.log("Suggested path:", result.suggestedPath);
-    console.log("\n----- Generated content (preview) -----\n");
-    console.log(result.content);
-    console.log("\n========================================\n");
-  }
+  console.log("\nGenerated documentation kind:", result.kind);
+  console.log("Suggested path:", result.suggestedPath);
+  console.log("\n----- Generated content (preview) -----\n");
+  console.log(result.content);
+  console.log("\n========================================\n");
 
   try {
     const usageResult = await incrementUsage(user.id);

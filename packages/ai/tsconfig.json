@@ -17,11 +17,10 @@
     "strict": true,
     "target": "ES2022",
     "strictNullChecks": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"],
-      "@repo/*": ["../../packages/*"]
-    }
   },
-  "include": ["**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

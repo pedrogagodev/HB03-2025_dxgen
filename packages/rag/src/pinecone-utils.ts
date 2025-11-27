@@ -24,7 +24,7 @@ export const ensurePineconeClient = (pinecone: PineconeConfig) => {
   return new Pinecone({
     apiKey,
     controllerHostUrl:
-      pinecone.controllerHostUrl ?? process.env.PINECONE_CONTROLLER_HOST,
+      pinecone.controllerHostUrl,
   });
 };
 

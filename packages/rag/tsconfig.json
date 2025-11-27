@@ -2,7 +2,16 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@repo/ai": ["packages/ai/src/index.ts"],
+      "@repo/ai/*": ["packages/ai/src/*"],
+      "@repo/*": ["packages/*/src", "apps/*/src"]
+    }
   },
   "include": ["src/**/*"]
 }

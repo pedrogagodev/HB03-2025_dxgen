@@ -2,9 +2,9 @@ import type {
   DetectedStack,
   GenerateRequest,
   GenerateResult,
-} from "@dxgen/core-runtime";
+} from "../types";
 
-export async function runApiDocsAgent(args: {
+export async function createApiDocs(args: {
   request: GenerateRequest;
   stack?: DetectedStack;
 }): Promise<GenerateResult> {
