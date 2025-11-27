@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import prompts from "prompts";
 import { SupabaseConfigError, supabase } from "../supabase";
+import { executeLoginFlow } from "./login-flow";
 
 export interface AuthOptions {
   onExit?: (code: number) => never;
@@ -46,7 +47,9 @@ export async function logout(): Promise<void> {
   }
 }
 
-export async function promptLogin(options: AuthOptions = {}): Promise<never> {
+export async function promptLogin(
+  options: AuthOptions = {},
+): Promise<User | never> {
   const { onExit } = { ...defaultOptions, ...options };
 
   console.log("\n🔒 Authentication Required\n");
@@ -72,7 +75,32 @@ export async function promptLogin(options: AuthOptions = {}): Promise<never> {
   );
 
   if (response.action === "login") {
-    console.log("\n👉 Please run: dxgen login\n");
+    console.log("\n🔐 Starting GitHub authentication...\n");
+
+    const loginResult = await executeLoginFlow({
+      silent: false,
+      checkIfLoggedIn: false,
+    });
+
+    if (loginResult.success && loginResult.user) {
+      console.log("\n✅ Authentication successful!");
+      console.log("👉 Continuing with your command...\n");
+      return loginResult.user;
+    }
+
+    if (loginResult.errorType === "timeout") {
+      console.error("\n❌ Login timed out after 2 minutes.");
+    } else if (loginResult.errorType === "port_in_use") {
+      console.error("\n❌ Port 54321 is already in use.");
+      console.error("Please close other dxgen instances and try again.");
+    } else if (loginResult.errorType === "cancelled") {
+      console.log("\n❌ Login cancelled by user.");
+    } else {
+      console.error("\n❌ Login failed.");
+      console.error(`Error: ${loginResult.error?.message || "Unknown error"}`);
+    }
+
+    console.error("Please try again.\n");
     return onExit(1);
   }
 
@@ -81,11 +109,10 @@ export async function promptLogin(options: AuthOptions = {}): Promise<never> {
 }
 
 export async function requireAuth(options: AuthOptions = {}): Promise<User> {
-  const user = await checkAuth();
+  let user = await checkAuth();
 
   if (!user) {
-    await promptLogin(options);
-    throw new Error("Authentication required but not provided");
+    user = await promptLogin(options);
   }
 
   return user;
