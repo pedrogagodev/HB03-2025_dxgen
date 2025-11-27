@@ -17,6 +17,11 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
-    "strictNullChecks": true
-  }
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/*": ["packages/*/src", "apps/*/src"]
+    }
+  },
+  "include": ["packages/**/*", "apps/**/*"]
 }

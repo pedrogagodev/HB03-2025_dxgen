@@ -1,9 +1,16 @@
 {
-    "name": "@repo/agents-summary",
+    "name": "@repo/ai",
     "version": "1.0.0",
     "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./src/index.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "dependencies": {},
     "scripts": {
         "build": "tsc -b",
         "dev": "tsc --watch"

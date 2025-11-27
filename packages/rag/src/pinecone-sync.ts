@@ -98,5 +98,17 @@ export async function syncChunksToPinecone(
 
 export async function resetPineconeNamespace(options: SyncOptions) {
   const { index } = getIndexForContext(options.pinecone, options.context);
-  await index.deleteAll();
+  try {
+    await index.deleteAll();
+  } catch (error) {
+    const err = error as Error & { status?: number };
+    const isNotFound =
+      err?.name === "PineconeNotFoundError" || err?.status === 404;
+
+    if (isNotFound) {
+      return;
+    }
+
+    throw error;
+  }
 }

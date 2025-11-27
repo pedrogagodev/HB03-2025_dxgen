@@ -2,9 +2,9 @@ import type {
   DetectedStack,
   GenerateRequest,
   GenerateResult,
-} from "@dxgen/core-runtime";
+} from "../types";
 
-export async function runReadmeAgent(args: {
+export async function createSummary(args: {
   request: GenerateRequest;
   stack?: DetectedStack;
 }): Promise<GenerateResult> {
@@ -18,8 +18,8 @@ export async function runReadmeAgent(args: {
     : "";
 
   return {
-    kind: "readme",
-    suggestedPath: "README.md",
-    content: `# README (stub)\n\nEste é um README gerado pelo README Agent.\n\nEstilo desejado: ${wizard.style}\nOutput dir: ${wizard.outputDir}${stackInfo}\n`,
+    kind: "summary",
+    suggestedPath: "docs/repository-summary.md",
+    content: `# Resumo do Repositório (stub)\n\nEste é um resumo gerado pelo Summary Agent.\n\nEstilo desejado: ${wizard.style}\nOutput dir: ${wizard.outputDir}${stackInfo}\n`,
   };
 }

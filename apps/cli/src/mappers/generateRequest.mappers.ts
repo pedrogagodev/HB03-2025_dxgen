@@ -1,4 +1,4 @@
-import type { GenerateRequest } from "@repo/core-runtime";
+import type { GenerateRequest } from "@repo/ai";
 import type { GenerateAnswers } from "../types/generate.types";
 
 export function mapGenerateAnswersToRequest(
