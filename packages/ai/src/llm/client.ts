@@ -29,8 +29,6 @@ export function formatContext(
     .slice(0, maxEntries)
     .map((doc, index) => {
       const identifier =
-        (typeof doc.metadata?.relativePath === "string" &&
-          doc.metadata.relativePath) ||
         (typeof doc.metadata?.path === "string" && doc.metadata.path) ||
         (typeof doc.metadata?.source === "string" && doc.metadata.source) ||
         `Snippet ${index + 1}`;
