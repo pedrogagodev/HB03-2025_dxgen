@@ -15,6 +15,9 @@ export interface LoginFlowResult {
     | "oauth_error"
     | "session_error"
     | "profile_error"
+    | "profile_creation_failed"
+    | "not_on_allowlist"
+    | "allowlist_check_failed"
     | "timeout"
     | "port_in_use"
     | "cancelled";
@@ -23,6 +26,18 @@ export interface LoginFlowResult {
 export interface LoginFlowOptions {
   silent?: boolean;
   checkIfLoggedIn?: boolean;
+}
+
+async function checkAllowlist(githubUsername: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("check_allowlist", {
+    username: githubUsername,
+  });
+
+  if (error) {
+    throw new Error(`Allowlist check failed: ${error.message}`);
+  }
+
+  return data === true;
 }
 
 export async function executeLoginFlow(
@@ -161,6 +176,69 @@ export async function executeLoginFlow(
         spinnerSession.succeed("Login complete!");
       }
 
+      const allowlistSpinner = !silent
+        ? ora("Checking access...").start()
+        : null;
+
+      try {
+        const githubUsername = sessionData.user.user_metadata?.user_name;
+        if (!githubUsername) {
+          throw new Error("Could not retrieve GitHub username");
+        }
+
+        const isAllowed = await checkAllowlist(githubUsername);
+
+        if (!isAllowed) {
+          if (allowlistSpinner) {
+            allowlistSpinner.fail("Access denied");
+          }
+          if (!silent) {
+            console.log("\n You're not on the allowlist.");
+            console.log(`Visit ${process.env.FRONTEND_URL} to join the waitlist and request access.\n`);
+          }
+          await supabase.auth.signOut();
+
+          // Notify frontend about allowlist failure
+          if (server) {
+            server.setStatus('not_allowed', "You're not on the allowlist");
+          }
+
+          return {
+            success: false,
+            error: new Error(
+              "You're not on the allowlist. Join the waitlist to request access.",
+            ),
+            errorType: "not_on_allowlist",
+          };
+        }
+
+        if (allowlistSpinner) {
+          allowlistSpinner.succeed("Access verified!");
+        }
+      } catch (allowlistError) {
+        if (allowlistSpinner) {
+          allowlistSpinner.fail("Access check failed");
+        }
+        if (!silent) {
+          console.error(
+            `\n Could not verify access: ${(allowlistError as Error).message}`,
+          );
+          console.error("Please try again later.\n");
+        }
+        await supabase.auth.signOut();
+
+        // Notify frontend about allowlist check error
+        if (server) {
+          server.setStatus('error', (allowlistError as Error).message);
+        }
+
+        return {
+          success: false,
+          error: allowlistError as Error,
+          errorType: "allowlist_check_failed",
+        };
+      }
+
       const profileSpinner = !silent
         ? ora("Setting up profile...").start()
         : null;
@@ -186,14 +264,20 @@ export async function executeLoginFlow(
 
           if (createError) {
             if (profileSpinner) {
-              profileSpinner.fail("Profile setup failed");
+              profileSpinner.fail("Profile creation failed");
             }
             if (!silent) {
-              console.warn("\n⚠️  Could not create user profile");
-              console.warn(
-                "You may need to contact support if this persists.\n",
-              );
+              console.error("\n Profile creation failed.");
+              console.error("Please try logging in again.\n");
             }
+            await supabase.auth.signOut();
+            return {
+              success: false,
+              error: new Error(
+                "Profile creation failed. Please try logging in again.",
+              ),
+              errorType: "profile_creation_failed",
+            };
           } else {
             if (profileSpinner) {
               profileSpinner.succeed("Profile created!");
@@ -226,6 +310,11 @@ export async function executeLoginFlow(
         );
         console.log(`💾 Session saved to: ${getSessionFilePath()}`);
         console.log("\n👉 You can now use dxgen commands!\n");
+      }
+
+      // Notify frontend about successful authentication
+      if (server) {
+        server.setStatus('success');
       }
 
       return {
@@ -264,17 +353,16 @@ export async function executeLoginFlow(
       errorType = "session_error";
       if (!silent) {
         console.error("\nPlease check your internet connection and try again.");
-        console.error(
-          "If the problem persists, make sure GitHub OAuth is configured in your Supabase project.",
-        );
       }
     } else {
       if (!silent) {
         console.error("\nPlease check your internet connection and try again.");
-        console.error(
-          "If the problem persists, make sure GitHub OAuth is configured in your Supabase project.",
-        );
       }
+    }
+
+    // Notify frontend about error
+    if (server) {
+      server.setStatus('error', errorMessage);
     }
 
     return {
@@ -284,6 +372,9 @@ export async function executeLoginFlow(
     };
   } finally {
     if (server) {
+      if (server.useFrontend) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
       server.close();
     }
   }
