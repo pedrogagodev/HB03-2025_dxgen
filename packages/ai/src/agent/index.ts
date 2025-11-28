@@ -1,5 +1,6 @@
 import "dotenv/config";
 import type { Document } from "@langchain/core/documents";
+import { HumanMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
 import { createAgent } from "langchain";
 
@@ -32,9 +33,7 @@ interface DocGenerationAgentOptions {
   stack?: DetectedStack;
 }
 
-/**
- * Creates a centralized documentation generation agent with all specialist tools
- */
+// Creates a centralized documentation generation agent with all specialist tools
 export function createDocGenerationAgent(
   options: DocGenerationAgentOptions,
 ): ReturnType<typeof createAgent> {
@@ -61,51 +60,45 @@ export function createDocGenerationAgent(
   return agent;
 }
 
-/**
- * Executes the documentation generation by calling the appropriate tool directly
- */
+// Executes the documentation generation using the agent with middleware
 export async function executeDocAgent(
   request: GenerateRequest,
   options: DocGenerationAgentOptions,
 ): Promise<GenerateResult> {
-  const { documents, stack } = options;
   const { wizard, project } = request;
 
-  // Create the appropriate tool based on the feature
-  const toolMap = {
-    readme: createReadmeTool(documents, stack),
-    "api-docs": createApiDocsTool(documents, stack),
-    diagram: createDiagramsTool(documents, stack),
-    summary: createSummaryTool(documents, stack),
-  };
-
-  const tool = toolMap[wizard.feature];
-  if (!tool) {
-    throw new Error(`Unknown feature: ${wizard.feature}`);
-  }
+  // Create the agent with all tools and middleware
+  const agent = createDocGenerationAgent(options);
 
   try {
-    // Call the tool directly with the required parameters
-    const resultJson = await tool.invoke({
-      rootPath: project.rootPath,
-      outputDir: wizard.outputDir,
-      style: wizard.style,
+    // Invoke the agent with a human message following the documentation pattern
+    const response = await agent.invoke({
+      messages: [
+        new HumanMessage(
+          `Generate ${wizard.feature} documentation for the project. ` +
+            `Use rootPath: "${project.rootPath}", outputDir: "${wizard.outputDir}", style: "${wizard.style}".`,
+        ),
+      ],
     });
 
-    // Parse the result
-    const result = JSON.parse(resultJson) as GenerateResult;
-    return result;
-  } catch (error) {
-    const errorMessage = (error as Error).message;
+    // Extract the last message from the agent response
+    const lastMessage = response.messages[response.messages.length - 1];
+    const content = lastMessage.content?.toString() || "";
 
-    // If it's a guardrail error, return a user-friendly result
-    if (errorMessage.includes("Cannot generate API documentation")) {
+    // Check if middleware blocked the request
+    if (content.includes("Cannot generate API documentation")) {
       return {
         kind: wizard.feature as GenerateResult["kind"],
         suggestedPath: "docs/error.md",
-        content: `# ❌ Documentation Generation Failed\n\n${errorMessage}\n`,
+        content: `# ❌ Documentation Generation Failed\n\n${content}\n`,
       };
     }
+
+    // Parse the JSON result from the tool
+    const result = JSON.parse(content) as GenerateResult;
+    return result;
+  } catch (error) {
+    const errorMessage = (error as Error).message;
 
     // Generic error fallback
     return {
