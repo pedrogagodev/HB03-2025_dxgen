@@ -1,49 +1,27 @@
+/**
+ * Global Styles - DxGen Frontend
+ * 
+ * ORGANIZAÇÃO:
+ * 1. Imports e variáveis
+ * 2. Reset e base
+ * 3. Background animado (grid, orbs, aurora)
+ * 4. Utilitários
+ */
+
 @import "tailwindcss";
+
+/* ============================================
+   VARIÁVEIS CSS
+   ============================================ */
 
 :root {
   --background: #020617;
   --foreground: #e2e8f0;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-/* Fade-in animation for sections */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out both;
-}
-
-/* Staggered delays for children */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-
-/* Glow pulse for CTA buttons */
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.9);
-  }
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 2.5s ease-in-out infinite;
-}
+/* ============================================
+   CONFIGURAÇÃO TAILWIND
+   ============================================ */
 
 @theme inline {
   --color-background: var(--background);
@@ -52,27 +30,22 @@ html {
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #e2e8f0;
-  }
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background: radial-gradient(
-      circle at top,
-      rgba(56, 189, 248, 0.15),
-      transparent 55%
-    ),
-    radial-gradient(circle at top left, rgba(45, 212, 191, 0.18), transparent 55%),
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 55%),
-    linear-gradient(to bottom, #020617, #0f172a 45%, #020617 100%);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Animated grid background */
@@ -94,44 +67,9 @@ body {
   50% { opacity: 0.7; }
 }
 
-/* Floating code particles */
-.particles {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 10px;
-  color: rgba(16, 185, 129, 0.15);
-  animation: float-up 20s linear infinite;
-  white-space: nowrap;
-}
-
-.particle:nth-child(2) { left: 15%; animation-delay: -3s; animation-duration: 25s; color: rgba(56, 189, 248, 0.12); }
-.particle:nth-child(3) { left: 30%; animation-delay: -7s; animation-duration: 22s; }
-.particle:nth-child(4) { left: 45%; animation-delay: -2s; animation-duration: 28s; color: rgba(139, 92, 246, 0.12); }
-.particle:nth-child(5) { left: 60%; animation-delay: -5s; animation-duration: 24s; }
-.particle:nth-child(6) { left: 75%; animation-delay: -9s; animation-duration: 26s; color: rgba(56, 189, 248, 0.12); }
-.particle:nth-child(7) { left: 88%; animation-delay: -4s; animation-duration: 21s; }
-.particle:nth-child(8) { left: 5%; animation-delay: -11s; animation-duration: 30s; color: rgba(139, 92, 246, 0.12); }
-
-@keyframes float-up {
-  0% {
-    transform: translateY(100vh) rotate(0deg);
-    opacity: 0;
-  }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% {
-    transform: translateY(-100vh) rotate(10deg);
-    opacity: 0;
-  }
-}
+/* ============================================
+   BACKGROUND ANIMADO - ORBS
+   ============================================ */
 
 /* Glowing orbs */
 .orb {
@@ -179,18 +117,9 @@ body {
   75% { transform: translate(20px, 20px) scale(1.02); }
 }
 
-/* Code background image overlay */
-.code-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: 
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'%3E%3Ctext x='20' y='40' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3Econst dxgen = require('dxgen');%3C/text%3E%3Ctext x='20' y='60' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E%3C/text%3E%3Ctext x='20' y='80' font-family='monospace' font-size='11' fill='%2310b981' opacity='0.05'%3E// Generate documentation%3C/text%3E%3Ctext x='20' y='100' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3Eawait dxgen.init(%7B%3C/text%3E%3Ctext x='20' y='120' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E  source: './src',%3C/text%3E%3Ctext x='20' y='140' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E  output: './docs',%3C/text%3E%3Ctext x='20' y='160' font-family='monospace' font-size='11' fill='%2338bdf8' opacity='0.05'%3E  format: 'markdown'%3C/text%3E%3Ctext x='20' y='180' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.04'%3E%7D);%3C/text%3E%3Ctext x='400' y='300' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3Eexport interface DocConfig %7B%3C/text%3E%3Ctext x='400' y='320' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3E  agents: Agent[];%3C/text%3E%3Ctext x='400' y='340' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3E  llm: LLMProvider;%3C/text%3E%3Ctext x='400' y='360' font-family='monospace' font-size='11' fill='%2394a3b8' opacity='0.03'%3E%7D%3C/text%3E%3Ctext x='600' y='500' font-family='monospace' font-size='11' fill='%238b5cf6' opacity='0.04'%3E%3C!-- AI-ready docs --%3E%3C/text%3E%3C/svg%3E") top left / 800px 600px repeat;
-  opacity: 0.6;
-}
-
-/* Aurora overlay - improved */
+/* ============================================
+   BACKGROUND ANIMADO - AURORA
+   ============================================ */
 .aurora-overlay {
   position: fixed;
   inset: 0;
@@ -208,40 +137,30 @@ body {
   50% { opacity: 1; filter: hue-rotate(15deg); }
 }
 
-/* Scan line effect */
-.scanline {
-  position: fixed;
+/* ============================================
+   UTILITÁRIOS
+   ============================================ */
+
+/* Efeito glass para cards */
+.glass {
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
   inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(56, 189, 248, 0.3));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
   pointer-events: none;
-  z-index: 1;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(16, 185, 129, 0.03) 50%,
-    transparent 100%
-  );
-  background-size: 100% 4px;
-  animation: scanline-move 8s linear infinite;
-  opacity: 0.3;
-}
-
-@keyframes scanline-move {
-  0% { background-position: 0 -100vh; }
-  100% { background-position: 0 100vh; }
-}
-
-.glass-surface {
-  background-color: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.8),
-    0 0 0 1px rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(18px);
-}
-
-.mockup-gradient-border {
-  background:
-    linear-gradient(#020617, #020617) padding-box,
-    radial-gradient(circle at top left, #22c55e, #22d3ee) border-box;
-  border: 1px solid transparent;
 }
