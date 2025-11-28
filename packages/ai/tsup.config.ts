@@ -9,4 +9,6 @@ export default defineConfig({
   clean: true,
   splitting: false,
   treeshake: true,
+  // Mark these packages as external to avoid bundling CommonJS require() calls
+  external: ["dotenv", "prompts"],
 });
