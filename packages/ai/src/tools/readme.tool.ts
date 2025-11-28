@@ -1,8 +1,11 @@
 import type { Document } from "@langchain/core/documents";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { tool } from "langchain";
+import * as z from "zod";
+
 import { formatContext, invokeLLM } from "../llm/client";
-import { extractContent } from "../llm/utils";
-import type { DetectedStack, GenerateRequest, GenerateResult } from "../types";
+import type { DetectedStack } from "../types";
+import { extractContent } from "../utils/utils";
 
 const buildStackSummary = (stack?: DetectedStack): string => {
   if (!stack) {
@@ -27,7 +30,7 @@ Generate a **production-ready, industry-leading README.md** that:
 ## ABSOLUTE RULES (VIOLATIONS WILL RESULT IN FAILURE)
 
 ### Rule 0: OUTPUT FORMAT
-Your response must be PURE MARKDOWN content only. 
+Your response must be PURE MARKDOWN content only.
 - Do NOT wrap your response in \`\`\`markdown or \`\`\` code fences
 - Do NOT start with \`\`\`markdown
 - Do NOT end with \`\`\`
@@ -63,7 +66,7 @@ When explicit data isn't available, INFER from context:
 <div align="center">
   <h1>🚀 Project Name</h1>
   <p><strong>One-line compelling description extracted from package.json or inferred</strong></p>
-  
+
   <p>
     <a href="#installation"><img src="https://img.shields.io/badge/install-guide-blue?style=for-the-badge" alt="Installation" /></a>
     <a href="#quick-start"><img src="https://img.shields.io/badge/quick-start-green?style=for-the-badge" alt="Quick Start" /></a>
@@ -157,169 +160,6 @@ If LICENSE file exists, reference it.
 
 ---
 
-## EXAMPLE OF EXCELLENT README OUTPUT
-
-Below is an example of the quality and structure you should produce.
-**NOTE**: The example below is wrapped in code fences ONLY for display purposes. Your actual output should NOT include these code fences - output raw markdown directly.
-
-<div align="center">
-  <h1>⚡ Acme Platform</h1>
-  <p><strong>AI-powered developer tools that ship 10x faster</strong></p>
-  
-  <p>
-    <a href="#installation"><img src="https://img.shields.io/badge/install-guide-blue?style=for-the-badge" alt="Installation" /></a>
-    <a href="#quick-start"><img src="https://img.shields.io/badge/quick-start-green?style=for-the-badge" alt="Quick Start" /></a>
-    <a href="#documentation"><img src="https://img.shields.io/badge/docs-orange?style=for-the-badge" alt="Documentation" /></a>
-  </p>
-</div>
-
----
-
-## ✨ Highlights
-
-- 🚀 **Blazing Fast** – Built with Turborepo for optimal monorepo performance
-- 🔐 **Enterprise Security** – OAuth 2.0, RBAC, and audit logging out of the box
-- 📦 **Modular Architecture** – Pick and use only what you need
-- 🎨 **Beautiful UI** – Shadcn/ui components with Tailwind CSS
-- 🧪 **Fully Tested** – 95%+ code coverage with Vitest
-
----
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Available Scripts](#available-scripts)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-| Requirement | Version |
-|-------------|---------|
-| Node.js | >= 18.0.0 |
-| pnpm | >= 8.0.0 |
-| Docker | >= 24.0.0 |
-
----
-
-## Installation
-
-1. **Clone the repository**
-   \\\`\\\`\\\`bash
-   git clone https://github.com/acme/platform.git
-   cd platform
-   \\\`\\\`\\\`
-
-2. **Install dependencies**
-   \\\`\\\`\\\`bash
-   pnpm install
-   \\\`\\\`\\\`
-
-3. **Set up environment variables**
-   \\\`\\\`\\\`bash
-   cp .env.example .env
-   \\\`\\\`\\\`
-
-4. **Start infrastructure services**
-   \\\`\\\`\\\`bash
-   docker-compose up -d
-   \\\`\\\`\\\`
-
----
-
-## Quick Start
-
-Get the development server running:
-
-\\\`\\\`\\\`bash
-pnpm dev
-\\\`\\\`\\\`
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| \\\`pnpm dev\\\` | Start all apps in development mode |
-| \\\`pnpm build\\\` | Build all apps for production |
-| \\\`pnpm test\\\` | Run test suite |
-| \\\`pnpm lint\\\` | Lint all packages |
-| \\\`pnpm format\\\` | Format code with Prettier |
-| \\\`pnpm db:migrate\\\` | Run database migrations |
-| \\\`pnpm db:seed\\\` | Seed the database |
-
----
-
-## Project Structure
-
-\\\`\\\`\\\`
-acme-platform/
-├── apps/
-│   ├── web/                 # Next.js frontend application
-│   ├── api/                 # Express.js REST API
-│   └── docs/                # Documentation site
-├── packages/
-│   ├── ui/                  # Shared React components
-│   ├── database/            # Prisma schema and client
-│   ├── config/              # Shared configuration
-│   └── utils/               # Shared utility functions
-├── docker-compose.yml       # Local development services
-├── turbo.json               # Turborepo configuration
-└── package.json             # Root workspace configuration
-\\\`\\\`\\\`
-
----
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| \\\`DATABASE_URL\\\` | PostgreSQL connection string | ✅ |
-| \\\`NEXTAUTH_SECRET\\\` | NextAuth.js secret key | ✅ |
-| \\\`NEXTAUTH_URL\\\` | Application base URL | ✅ |
-| \\\`OPENAI_API_KEY\\\` | OpenAI API key for AI features | ❌ |
-
----
-
-## Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch: \\\`git checkout -b feat/amazing-feature\\\`
-3. Commit your changes: \\\`git commit -m 'feat: add amazing feature'\\\`
-4. Push to the branch: \\\`git push origin feat/amazing-feature\\\`
-5. Open a Pull Request
-
-Please read our [Contributing Guide](CONTRIBUTING.md) for details.
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-  <p>Built with ❤️</p>
-</div>
-
----
-
 ## FINAL INSTRUCTIONS
 
 1. **OUTPUT RAW MARKDOWN ONLY** - Do NOT wrap in \`\`\`markdown code fences. Start directly with the content.
@@ -333,17 +173,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Now generate the README based on the codebase context provided below. Remember: output ONLY raw markdown, no code fences.`;
 
 const buildHumanPrompt = (
-  request: GenerateRequest,
+  rootPath: string,
+  outputDir: string,
+  style: string,
   stack?: DetectedStack,
 ): string => {
-  const { wizard } = request;
-
   return [
     "## PROJECT METADATA",
     "",
-    `- **Root Path**: ${request.project.rootPath}`,
-    `- **Output Directory**: ${wizard.outputDir}`,
-    `- **Requested Style**: ${wizard.style || "Professional technical documentation optimized for developer onboarding and comprehension"}`,
+    `- **Root Path**: ${rootPath}`,
+    `- **Output Directory**: ${outputDir}`,
+    `- **Requested Style**: ${style || "Professional technical documentation optimized for developer onboarding and comprehension"}`,
     `- ${buildStackSummary(stack)}`,
     "",
     "---",
@@ -369,49 +209,59 @@ const buildHumanPrompt = (
   ].join("\n");
 };
 
-export async function createReadme(args: {
-  request: GenerateRequest;
-  stack?: DetectedStack;
-  documents?: Document[];
-}): Promise<GenerateResult> {
-  const { request, stack, documents = [] } = args;
-  const { wizard } = request;
+export function createReadmeTool(documents: Document[], stack?: DetectedStack) {
+  return tool(
+    async ({ rootPath, outputDir, style }) => {
+      const prompt = [
+        new SystemMessage(SYSTEM_PROMPT),
+        new HumanMessage(buildHumanPrompt(rootPath, outputDir, style, stack)),
+      ];
 
-  const prompt = [
-    new SystemMessage(SYSTEM_PROMPT),
-    new HumanMessage(buildHumanPrompt(request, stack)),
-  ];
+      const context =
+        documents.length > 0
+          ? formatContext(documents, {
+              maxEntries: 30,
+              maxCharsPerEntry: 3_000,
+            })
+          : "";
 
-  const context =
-    documents.length > 0
-      ? formatContext(documents, { maxEntries: 30, maxCharsPerEntry: 3_000 })
-      : "";
+      try {
+        const response = await invokeLLM({
+          prompt,
+          context,
+          maxContextTokens: 20_000,
+        });
 
-  try {
-    const response = await invokeLLM({
-      prompt,
-      context,
-      maxContextTokens: 20_000,
-    });
+        const content = extractContent(response);
 
-    const content = extractContent(response);
+        if (content.trim().length === 0) {
+          throw new Error("Empty LLM response");
+        }
 
-    if (content.trim().length === 0) {
-      throw new Error("Empty LLM response");
-    }
+        return JSON.stringify({
+          kind: "readme",
+          suggestedPath: "README.md",
+          content,
+        });
+      } catch (error) {
+        const stackInfo = buildStackSummary(stack);
 
-    return {
-      kind: "readme",
-      suggestedPath: "README.md",
-      content,
-    };
-  } catch (error) {
-    const stackInfo = buildStackSummary(stack);
-
-    return {
-      kind: "readme",
-      suggestedPath: "README.md",
-      content: `# README (fallback)\n\nNão foi possível gerar o README automaticamente (${(error as Error).message}).\n\nEstilo desejado: ${wizard.style}\nOutput dir: ${wizard.outputDir}\n${stackInfo}\n`,
-    };
-  }
+        return JSON.stringify({
+          kind: "readme",
+          suggestedPath: "README.md",
+          content: `# README (fallback)\n\nNão foi possível gerar o README automaticamente (${(error as Error).message}).\n\nEstilo desejado: ${style}\nOutput dir: ${outputDir}\n${stackInfo}\n`,
+        });
+      }
+    },
+    {
+      name: "generate_readme",
+      description:
+        "Generates a professional, production-ready README.md file for the project based on the codebase analysis. Use this tool when the user wants to create comprehensive project documentation.",
+      schema: z.object({
+        rootPath: z.string().describe("The root path of the project"),
+        outputDir: z.string().describe("The output directory for the README"),
+        style: z.string().describe("The desired documentation style"),
+      }),
+    },
+  );
 }

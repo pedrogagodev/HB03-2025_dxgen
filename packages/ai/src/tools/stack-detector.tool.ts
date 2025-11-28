@@ -1,24 +1,20 @@
 import type { Document } from "@langchain/core/documents";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import type { DetectedStack } from "../types";
-import { formatContext, invokeLLM } from "./client";
-import { COMMON_LANGUAGES } from "./languages";
-import { stackCache } from "./stack-cache";
-import { extractContent } from "./utils";
+import { tool } from "langchain";
+import * as z from "zod";
 
-export async function detectStack(
-  documents: Document[],
-): Promise<DetectedStack> {
+import { formatContext, invokeLLM } from "../llm/client";
+import type { DetectedStack } from "../types";
+import { COMMON_LANGUAGES } from "../utils/languages";
+import { extractContent } from "../utils/utils";
+
+/**
+ * Detects the technology stack from the provided documents
+ */
+async function detectStack(documents: Document[]): Promise<DetectedStack> {
   if (documents.length === 0) {
     return { language: "other" };
   }
-
-  const cached = stackCache.get(documents);
-  if (cached) {
-    return cached;
-  }
-
-  stackCache.clearExpired();
 
   const context = formatContext(documents, {
     maxEntries: 20,
@@ -37,7 +33,7 @@ export async function detectStack(
         '{"language": "ts" | "js" | "py" | "go" | etc..., "framework": the frameworks/libraries used, "notes": "string or undefined"}',
         "",
         "Be specific: if you see TypeScript files, use 'ts'. If you see React/Vue/Next.js, mention it in framework.",
-        "If it's a monorepo (workspaces in package.json), mention the it in notes.",
+        "If it's a monorepo, mention all the packages and their dependencies in notes.",
       ].join(" "),
     ),
     new HumanMessage(
@@ -61,8 +57,6 @@ export async function detectStack(
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]) as DetectedStack;
-      // Cache the result
-      stackCache.set(documents, parsed);
       return parsed;
     }
 
@@ -76,3 +70,26 @@ export async function detectStack(
     return { language: "other", notes: "Stack detection error" };
   }
 }
+
+/**
+ * Creates a tool for detecting the technology stack
+ */
+export function createStackDetectorTool(documents: Document[]) {
+  return tool(
+    async () => {
+      const stack = await detectStack(documents);
+      return JSON.stringify(stack);
+    },
+    {
+      name: "detect_stack",
+      description:
+        "Analyzes the codebase to detect the technology stack including programming language, framework, and architectural patterns. Use this tool to understand the project's technical foundation before generating documentation.",
+      schema: z.object({}),
+    },
+  );
+}
+
+/**
+ * Standalone function to detect stack (used outside of tool context)
+ */
+export { detectStack };
