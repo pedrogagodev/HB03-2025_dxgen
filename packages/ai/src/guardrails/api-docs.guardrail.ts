@@ -79,16 +79,13 @@ export function createApiDocsGuardrail(documents: Document[]) {
   return createMiddleware({
     name: "ApiDocsGuardrail",
     beforeAgent: async (state) => {
-      // Verificar se há mensagens no estado
       if (!state.messages || state.messages.length === 0) {
         return;
       }
 
-      // Pegar a última mensagem do usuário
       const lastMessage = state.messages[state.messages.length - 1];
       const content = lastMessage.content?.toString().toLowerCase() || "";
 
-      // Verificar se o usuário está solicitando documentação de API
       if (content.includes("api-docs") || content.includes("api docs")) {
         console.log(
           "\n🛡️  API Docs Guardrail: Checking if project has API endpoints...",
@@ -101,7 +98,6 @@ export function createApiDocsGuardrail(documents: Document[]) {
             "   ❌ No API endpoints detected. Blocking API docs generation.",
           );
 
-          // Bloquear a execução e retornar mensagem de erro
           return {
             messages: [
               new AIMessage(
