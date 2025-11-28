@@ -1,15 +1,6 @@
 "use client";
 
-/**
- * FeatureGrid - Grid de features com animações staggered
- * 
- * MELHORIAS APLICADAS:
- * 1. Animação staggered nos cards (aparecem em cascata)
- * 2. Hover com scale e glow sutil
- * 3. Ícones opcionais com cores de accent
- * 4. Layout responsivo mobile-first
- * 5. Código componentizado e reutilizável
- */
+
 
 import { motion } from "framer-motion";
 import { staggerContainer, cardVariants } from "@/lib/animations";
@@ -82,7 +73,7 @@ interface SectionHeaderProps {
 
 function SectionHeader({ badge, title, description }: SectionHeaderProps) {
   return (
-    <motion.div 
+    <motion.div
       variants={cardVariants}
       className="flex flex-col items-center gap-4 text-center"
     >
@@ -111,8 +102,8 @@ function FeatureCard({ feature }: FeatureCardProps) {
   return (
     <motion.div
       variants={cardVariants}
-      whileHover={{ 
-        scale: 1.02, 
+      whileHover={{
+        scale: 1.02,
         y: -4,
         transition: { duration: 0.2 },
       }}
