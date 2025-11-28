@@ -41,7 +41,7 @@ generateCommand.action(async (_options, command) => {
       );
       console.error(`Resets in: ${usageStatus.days_until_reset} days\n`);
       console.error("🚀 Upgrade to Pro for 500 docs/month");
-      console.error("   Visit: https://dxgen.io/pricing\n");
+      console.error(`   Visit: ${process.env.FRONTEND_URL}\n`);
       process.exit(1);
     }
   } catch (error) {
@@ -128,7 +128,7 @@ generateCommand.action(async (_options, command) => {
 
     if (usageResult.limit_reached) {
       console.log("\n⚠️  You've reached your monthly limit!");
-      console.log("🚀 Upgrade to Pro: https://dxgen.io/pricing\n");
+      console.log(`🚀 Upgrade to Pro: ${process.env.FRONTEND_URL}\n`);
     } else {
       const remaining = usageResult.limit_value - usageResult.new_count;
       console.log(`  Remaining: ${remaining} docs`);
