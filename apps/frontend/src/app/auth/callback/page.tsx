@@ -37,7 +37,43 @@ function AuthCallbackContent() {
     })
       .then((res) => {
         if (res.ok) {
-          router.push("/auth/success");
+          const pollStatus = async () => {
+            const maxAttempts = 30; // 30 seconds max
+            let attempts = 0;
+
+            while (attempts < maxAttempts) {
+              try {
+                const statusRes = await fetch(`http://localhost:${port}/callback/status`);
+                if (statusRes.ok) {
+                  const statusData = await statusRes.json();
+
+                  if (statusData.status === "success") {
+                    router.push("/auth/success");
+                    return;
+                  } else if (statusData.status === "not_allowed") {
+                    router.push("/auth/not-allowed");
+                    return;
+                  } else if (statusData.status === "error") {
+                    router.push(
+                      `/auth/error?message=${encodeURIComponent(statusData.message || "Authentication failed")}`,
+                    );
+                    return;
+                  }
+                }
+              } catch (error) {
+                // Ignore polling errors and continue
+              }
+
+              attempts++;
+              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            }
+
+            router.push(
+              `/auth/error?message=${encodeURIComponent("Authentication timeout")}`,
+            );
+          };
+
+          pollStatus();
         } else {
           router.push(
             `/auth/error?message=${encodeURIComponent("Token validation failed")}`,
