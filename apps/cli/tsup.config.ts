@@ -11,4 +11,8 @@ export default defineConfig({
     js: "#!/usr/bin/env node",
   },
   outDir: "dist",
+  platform: "node",
+  target: "node18",
+  // Mark workspace packages and problematic dependencies as external
+  external: ["@repo/rag", "@repo/ai", "globby", "fast-glob"],
 });

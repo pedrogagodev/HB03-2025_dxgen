@@ -1,11 +1,14 @@
-import { runGenerateCommand } from "@repo/ai";
+import {
+  createPromptFileExistsHandler,
+  runGenerateCommand,
+  writeDocumentationFile,
+} from "@repo/ai";
 import { buildRagQuery, runRagPipeline } from "@repo/rag";
 import type { User } from "@supabase/supabase-js";
 import { Command } from "commander";
 import { checkUsageLimits, incrementUsage } from "../lib/usage";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
-
 
 export const generateCommand = new Command("generate").description(
   "Generate documentation for a project",
@@ -85,7 +88,7 @@ generateCommand.action(async (_options, command) => {
       fullReindex: request.wizard.sync,
     },
     retrieverOptions: {
-      topK: 20,
+      topK: 50,
     },
   });
 
@@ -94,20 +97,26 @@ generateCommand.action(async (_options, command) => {
   console.log("documents: ", JSON.stringify(documents, null, 2));
   console.log({ syncSummary });
 
-  const result = await runGenerateCommand(request); // langchain.llm
+  const result = await runGenerateCommand(request, { documents }); // langchain.llm
 
   if (!result) {
     console.log("No documentation was generated.");
     process.exit(0);
   }
 
-  // Por enquanto apenas mostra o(s) resultado(s) no terminal.
-  // Falta integrar com o package `writers` para salvar em arquivos.
-  console.log("\nGenerated documentation kind:", result.kind);
-  console.log("Suggested path:", result.suggestedPath);
-  console.log("\n----- Generated content (preview) -----\n");
-  console.log(result.content);
-  console.log("\n========================================\n");
+  // Escreve o arquivo usando o pacote @repo/ai
+  const writeResult = await writeDocumentationFile(request, result, {
+    onFileExists: await createPromptFileExistsHandler(),
+  });
+
+  if (!writeResult.success) {
+    console.error(`\n❌ Erro ao escrever arquivo: ${writeResult.error}`);
+    console.error(`Caminho: ${writeResult.filePath}\n`);
+    process.exit(1);
+  }
+
+  console.log(`\n✅ Documentação salva com sucesso!`);
+  console.log(`📄 Arquivo: ${writeResult.filePath}\n`);
 
   try {
     const usageResult = await incrementUsage(user.id);

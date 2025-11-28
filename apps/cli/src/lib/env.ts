@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
 
 import dotenv from "dotenv";
 
@@ -16,6 +17,7 @@ export function loadEnv(): void {
     resolve(process.cwd(), "../../.env"),
     resolve(import.meta.dirname, "../../../.env"),
     resolve(import.meta.dirname, "../../../../.env"),
+    join(homedir(), ".dxgen", ".env"),
   ];
 
   let loaded = false;

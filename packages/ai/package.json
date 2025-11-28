@@ -11,9 +11,12 @@
         }
     },
     "dependencies": {},
+    "devDependencies": {
+        "@types/node": "^20.0.0"
+    },
     "scripts": {
-        "build": "tsc -b",
-        "dev": "tsc --watch"
+        "build": "tsup",
+        "dev": "tsup --watch"
     },
     "private": true
 }
