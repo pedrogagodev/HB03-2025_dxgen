@@ -1,42 +1,61 @@
-import { Command } from "commander";
-import { generateCommand } from "./commands/generate";
-import { loginCommand } from "./commands/login";
-import { logoutCommand } from "./commands/logout";
-import { statusCommand } from "./commands/status";
-import { handleAuthenticationError, requireAuth } from "./lib/auth";
+import { render } from "ink";
+import React from "react";
+import { CLI } from "./components/CLI";
+import { handleGenerate } from "./handlers/generate.handler";
+import { handleLogin } from "./handlers/login.handler";
+import { handleLogout } from "./handlers/logout.handler";
+import { handleStatus } from "./handlers/status.handler";
 import { loadEnv } from "./lib/env";
-
-const program = new Command();
 
 loadEnv();
 
-program
-  .name("dxgen")
-  .description(
-    "AI Documentation Agent - CLI-first tool for generating documentation",
-  )
-  .version("0.0.1");
+const args = process.argv.slice(2);
+const command = args[0];
 
-program.hook("preAction", async (_thisCommand, actionCommand) => {
-  const commandName = actionCommand.name();
+async function main() {
+  // Version flag
+  if (args.includes("-v") || args.includes("--version")) {
+    console.log("dxgen v0.0.1");
+    process.exit(0);
+  }
 
-  const exemptCommands = ["login", "logout", "status", "help"];
-
-  if (exemptCommands.includes(commandName)) {
+  // Help flag
+  if (
+    args.includes("-h") ||
+    args.includes("--help") ||
+    command === "help" ||
+    !command
+  ) {
+    render(React.createElement(CLI));
     return;
   }
 
-  try {
-    const user = await requireAuth();
-    actionCommand.setOptionValue("__authenticatedUser", user);
-  } catch (error) {
-    handleAuthenticationError(error);
+  // Route commands
+  switch (command) {
+    case "login":
+      await handleLogin();
+      break;
+
+    case "logout":
+      await handleLogout();
+      break;
+
+    case "status":
+      await handleStatus();
+      break;
+
+    case "generate":
+      await handleGenerate();
+      break;
+
+    default:
+      console.error(`\nUnknown command: ${command}`);
+      console.error('Run "dxgen --help" for usage information.\n');
+      process.exit(1);
   }
+}
+
+main().catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
 });
-
-program.addCommand(loginCommand);
-program.addCommand(logoutCommand);
-program.addCommand(statusCommand);
-program.addCommand(generateCommand);
-
-program.parse(process.argv);
