@@ -18,6 +18,7 @@ class PineconeVectorRetriever extends BaseRetriever {
   private readonly scoreThreshold?: number;
   private readonly filter?: Record<string, unknown>;
   private readonly fallback?: BaseRetriever;
+  private readonly excludeRelativePathPrefixes?: string[];
   private readonly embeddings;
   private readonly index;
 
@@ -27,6 +28,7 @@ class PineconeVectorRetriever extends BaseRetriever {
     this.scoreThreshold = config.scoreThreshold;
     this.filter = config.filter;
     this.fallback = config.hybridFallback;
+    this.excludeRelativePathPrefixes = config.excludeRelativePathPrefixes;
     this.embeddings = createEmbeddings(config.embeddings);
     this.index = getIndexForContext(config.pinecone, config.context).index;
   }
@@ -60,7 +62,16 @@ class PineconeVectorRetriever extends BaseRetriever {
           },
         });
       })
-      .filter((doc) => doc.pageContent.length > 0);
+      .filter((doc) => doc.pageContent.length > 0)
+      .filter((doc) => {
+        if (!this.excludeRelativePathPrefixes?.length) return true;
+        const relPath = (doc.metadata as { relativePath?: string } | undefined)
+          ?.relativePath;
+        if (typeof relPath !== "string") return true;
+        return !this.excludeRelativePathPrefixes.some((prefix) =>
+          relPath.startsWith(prefix),
+        );
+      });
 
     if (docs.length === 0 && this.fallback) {
       return this.fallback.invoke(query);
@@ -75,8 +86,9 @@ export const createRetriever = (options: RetrieverOptions): BaseRetriever => {
     throw new Error("pinecone.index is required to create a retriever");
   }
 
+  // Optimized default: 25 chunks for better context coverage
   return new PineconeVectorRetriever({
     ...options,
-    topK: options.topK ?? 8,
+    topK: options.topK ?? 25,
   });
 };

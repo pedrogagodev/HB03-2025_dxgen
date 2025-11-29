@@ -32,6 +32,23 @@ const buildMetadata = (chunk: FileChunk, options: SyncOptions) => {
     endLine: chunk.metadata.endLine,
   };
 
+  if (chunk.metadata.fileType) metadata.fileType = chunk.metadata.fileType;
+  if (typeof chunk.metadata.isConfig === "boolean") {
+    metadata.isConfig = chunk.metadata.isConfig;
+  }
+  if (typeof chunk.metadata.isPackageJson === "boolean") {
+    metadata.isPackageJson = chunk.metadata.isPackageJson;
+  }
+  if (typeof chunk.metadata.isReadme === "boolean") {
+    metadata.isReadme = chunk.metadata.isReadme;
+  }
+  if (typeof chunk.metadata.isEnvExample === "boolean") {
+    metadata.isEnvExample = chunk.metadata.isEnvExample;
+  }
+  if (typeof chunk.metadata.isCiConfig === "boolean") {
+    metadata.isCiConfig = chunk.metadata.isCiConfig;
+  }
+
   if (options.context.branch) metadata.branch = options.context.branch;
   if (options.context.commitSha) metadata.commitSha = options.context.commitSha;
 
