@@ -78,9 +78,6 @@ export async function handleGenerate(): Promise<void> {
     process.exit(1);
   }
 
-  // IMPORTANT: Collect user input BEFORE starting Ink UI
-  // (Ink captures stdin and blocks prompts)
-  console.log("\n🤖 Documentation Generator\n");
   const answers = await getGenerateAnswers();
 
   if (!answers) {
