@@ -1,5 +1,6 @@
 import {
   createPromptFileExistsHandler,
+  detectStack,
   runGenerateCommand,
   writeDocumentationFile,
 } from "@repo/ai";
@@ -7,19 +8,29 @@ import { buildRagQuery, runRagPipeline } from "@repo/rag";
 import type { User } from "@supabase/supabase-js";
 import { Box, render, Text } from "ink";
 import React from "react";
-import { GenerateApp, type GenerateStage } from "../components/GenerateApp";
+import { GenerateApp } from "../components/GenerateApp";
 import { InfoBox } from "../components/InfoBox";
+import { SpinnerComponent } from "../components/Spinner";
 import { requireAuth } from "../lib/auth";
 import { checkUsageLimits, incrementUsage } from "../lib/usage";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
+import type { Stage } from "../types/progress.types";
 
 export async function handleGenerate(): Promise<void> {
+  // Show loading spinner during auth and setup
+  const loadingInstance = render(
+    <Box>
+      <SpinnerComponent label="Initializing..." type="dots" />
+    </Box>,
+  );
+
   let user: User;
 
   try {
     user = await requireAuth();
   } catch (_error) {
+    loadingInstance.unmount();
     render(
       <InfoBox type="error" title="Authentication Required">
         <Text>Run "dxgen login" to authenticate</Text>
@@ -29,6 +40,7 @@ export async function handleGenerate(): Promise<void> {
   }
 
   if (!process.stdin.isTTY) {
+    loadingInstance.unmount();
     console.error("Error: This command requires an interactive terminal.");
     console.error(
       "Please execute the command directly in the terminal, not through pipes or redirection.",
@@ -41,6 +53,7 @@ export async function handleGenerate(): Promise<void> {
     const usageStatus = await checkUsageLimits(user.id);
 
     if (!usageStatus.can_generate) {
+      loadingInstance.unmount();
       render(
         <InfoBox type="error" title="Monthly Limit Reached">
           <Box flexDirection="column">
@@ -57,6 +70,7 @@ export async function handleGenerate(): Promise<void> {
       process.exit(1);
     }
   } catch (error) {
+    loadingInstance.unmount();
     const errorMsg = (error as Error).message;
 
     if (errorMsg === "PROFILE_NOT_FOUND") {
@@ -78,6 +92,9 @@ export async function handleGenerate(): Promise<void> {
     process.exit(1);
   }
 
+  // Unmount loading spinner before showing prompts
+  loadingInstance.unmount();
+
   const answers = await getGenerateAnswers();
 
   if (!answers) {
@@ -88,26 +105,23 @@ export async function handleGenerate(): Promise<void> {
   const request = mapGenerateAnswersToRequest(answers);
 
   // Create callbacks for UI updates
-  let setStage: ((stage: GenerateStage) => void) | undefined;
-  let setError: ((error: string) => void) | undefined;
-  let setComplete:
-    | ((data: {
-        filePath: string;
-        usage?: { current: number; limit: number; remaining: number };
-      }) => void)
+  let updateStage:
+    | ((stageId: string, updates: Partial<Stage>) => void)
     | undefined;
+  let addGeneratedFile: ((filePath: string) => void) | undefined;
+  let completeGeneration: (() => void) | undefined;
+  let setError: ((error: string) => void) | undefined;
 
   // Start the Ink app AFTER collecting input
   const { waitUntilExit } = render(
     React.createElement(GenerateApp, {
-      onStageChange: (callback) => {
-        setStage = callback;
+      onProgressInit: (callbacks) => {
+        updateStage = callbacks.updateStage;
+        addGeneratedFile = callbacks.addGeneratedFile;
+        completeGeneration = callbacks.completeGeneration;
       },
       onError: (callback) => {
         setError = callback;
-      },
-      onComplete: (callback) => {
-        setComplete = callback;
       },
     }),
   );
@@ -116,13 +130,16 @@ export async function handleGenerate(): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 100));
 
   try {
-    // Stage 2: Building query
-    setStage?.("building_query");
-    const queryToFindRelevantFiles = buildRagQuery(request);
+    // Stage 1: Detecting stack - start
+    updateStage?.("detecting-stack", { status: "in_progress" });
 
-    // Stage 3: Running pipeline
-    setStage?.("running_pipeline");
-    const { documents } = await runRagPipeline({
+    // Stage 2: Building query and running pipeline
+    updateStage?.("indexing", {
+      status: "in_progress",
+    });
+
+    const queryToFindRelevantFiles = buildRagQuery(request);
+    const { documents, syncSummary } = await runRagPipeline({
       rootDir: process.cwd(),
       query: queryToFindRelevantFiles,
       pinecone: {
@@ -142,8 +159,48 @@ export async function handleGenerate(): Promise<void> {
       },
     });
 
+    // Detect stack from documents
+    const stackInfo = await detectStack(documents);
+    const stackParts: string[] = [];
+
+    if (stackInfo.language && stackInfo.language !== "other") {
+      stackParts.push(stackInfo.language.toUpperCase());
+    }
+
+    if (stackInfo.framework) {
+      const frameworks = Array.isArray(stackInfo.framework)
+        ? stackInfo.framework
+        : [stackInfo.framework];
+      stackParts.push(...frameworks);
+    }
+
+    // Complete detecting stack with detected info
+    updateStage?.("detecting-stack", {
+      status: "completed",
+      details: stackParts.length > 0 ? stackParts.join(" + ") : undefined,
+    });
+
+    // Complete indexing with file count (using upsertedCount as proxy)
+    const fileCount = syncSummary?.upsertedCount || 0;
+    updateStage?.("indexing", {
+      status: "completed",
+      details: `${fileCount} files`,
+    });
+
+    // Stage 3: Understanding architecture (no details)
+    updateStage?.("understanding", {
+      status: "in_progress",
+    });
+
+    updateStage?.("understanding", {
+      status: "completed",
+    });
+
     // Stage 4: Generating documentation
-    setStage?.("generating");
+    updateStage?.("generating", {
+      status: "in_progress",
+    });
+
     const result = await runGenerateCommand(request, { documents });
 
     if (!result) {
@@ -152,8 +209,7 @@ export async function handleGenerate(): Promise<void> {
       process.exit(0);
     }
 
-    // Stage 5: Writing file
-    setStage?.("writing_file");
+    // Writing file
     const writeResult = await writeDocumentationFile(request, result, {
       onFileExists: await createPromptFileExistsHandler(),
     });
@@ -166,28 +222,25 @@ export async function handleGenerate(): Promise<void> {
       process.exit(1);
     }
 
-    // Stage 6: Updating usage
-    setStage?.("updating_usage");
-    let usageResult: Awaited<ReturnType<typeof incrementUsage>> | undefined;
+    // Add generated file to list
+    addGeneratedFile?.(writeResult.filePath);
+
+    // Updating usage (silently, don't show in UI)
     try {
-      usageResult = await incrementUsage(user.id);
+      await incrementUsage(user.id);
     } catch (error) {
       // Continue even if usage update fails
       console.warn("\n⚠️  Warning: Could not update usage counter");
       console.warn(`Error: ${(error as Error).message}`);
     }
 
-    // Stage 7: Complete
-    setComplete?.({
-      filePath: writeResult.filePath,
-      usage: usageResult
-        ? {
-            current: usageResult.new_count,
-            limit: usageResult.limit_value,
-            remaining: usageResult.limit_value - usageResult.new_count,
-          }
-        : undefined,
+    // Complete generating stage
+    updateStage?.("generating", {
+      status: "completed",
     });
+
+    // Mark generation as complete
+    completeGeneration?.();
 
     await waitUntilExit();
     process.exit(0);
