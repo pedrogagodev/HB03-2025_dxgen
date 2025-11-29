@@ -10,7 +10,9 @@
             "import": "./dist/index.js"
         }
     },
-    "dependencies": {},
+    "dependencies": {
+        "@repo/rag": "0.0.1"
+    },
     "devDependencies": {
         "@types/node": "^20.0.0"
     },
