@@ -64,6 +64,7 @@ export async function runGenerateCommand(
 }
 
 // Export types and utilities
+export { detectStack } from "./tools/stack-detector.tool";
 export type * from "./types";
 export * from "./writers";
 export { buildProjectContext };
