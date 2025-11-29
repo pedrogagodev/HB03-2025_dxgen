@@ -1,66 +1,36 @@
 import { Box, Text, useApp } from "ink";
-import type React from "react";
-import { useEffect, useState } from "react";
-import { Header } from "./Header";
+import React, { useEffect } from "react";
+import type { ProgressState } from "../types/progress.types";
+import { CompletionSummary } from "./CompletionSummary";
+import { FileList } from "./FileList";
 import { InfoBox } from "./InfoBox";
-import { SpinnerComponent } from "./Spinner";
+import { ProgressStages } from "./ProgressStages";
 
 interface GenerateViewProps {
-  stage:
-    | "building_query"
-    | "running_pipeline"
-    | "generating"
-    | "writing_file"
-    | "updating_usage"
-    | "complete"
-    | "error";
+  progressState: ProgressState;
   error?: string;
-  usageInfo?: {
-    current: number;
-    limit: number;
-    remaining: number;
-  };
-  resultPath?: string;
+  isComplete: boolean;
 }
 
-export const GenerateView: React.FC<GenerateViewProps> = ({
-  stage,
+export const GenerateView = ({
+  progressState,
   error,
-  usageInfo,
-  resultPath,
-}) => {
+  isComplete,
+}: GenerateViewProps) => {
   const { exit } = useApp();
-  const [dots, setDots] = useState("");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? "" : `${prev}.`));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
 
   // Exit Ink when generation is complete or errored
   useEffect(() => {
-    if (stage === "complete" || stage === "error") {
+    if (isComplete || error) {
       // Give user time to read the final message
       const timer = setTimeout(() => {
         exit();
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [stage, exit]);
+  }, [isComplete, error, exit]);
 
-  const stageMessages = {
-    building_query: "Building query for relevant files",
-    running_pipeline: "Running RAG pipeline",
-    generating: "Generating documentation",
-    writing_file: "Writing documentation file",
-    updating_usage: "Updating usage statistics",
-    complete: "Complete",
-    error: "Error",
-  };
-
-  if (stage === "error" && error) {
+  if (error) {
     return (
       <Box flexDirection="column">
         <InfoBox type="error" title="Generation Failed">
@@ -70,63 +40,24 @@ export const GenerateView: React.FC<GenerateViewProps> = ({
     );
   }
 
-  if (stage === "complete" && resultPath) {
+  if (isComplete) {
     return (
       <Box flexDirection="column">
-        <InfoBox type="success" title="Documentation Generated Successfully">
-          <Box flexDirection="column" gap={1}>
-            <Text>
-              <Text bold>File: </Text>
-              <Text color="cyan">{resultPath}</Text>
-            </Text>
-            {usageInfo && (
-              <Box marginTop={1} flexDirection="column">
-                <Text bold>Usage Statistics:</Text>
-                <Text>
-                  <Text>Docs generated: </Text>
-                  <Text color="cyan">
-                    {usageInfo.current}/{usageInfo.limit}
-                  </Text>
-                  <Text> this month</Text>
-                </Text>
-                <Text>
-                  <Text>Remaining: </Text>
-                  <Text color="cyan">{usageInfo.remaining} docs</Text>
-                </Text>
-                {usageInfo.remaining <= 5 && (
-                  <Text color="yellow" marginTop={1}>
-                    💡 Running low! Consider upgrading to Pro.
-                  </Text>
-                )}
-              </Box>
-            )}
-          </Box>
-        </InfoBox>
+        <ProgressStages stages={progressState.stages} />
+        <Box marginY={1}>
+          <FileList files={progressState.generatedFiles} />
+        </Box>
+        <CompletionSummary
+          duration={progressState.endTime! - progressState.startTime}
+          fileCount={progressState.generatedFiles.length}
+        />
       </Box>
     );
   }
 
   return (
     <Box flexDirection="column">
-      <Header title="Dxgen is generating your documentation" />
-      <InfoBox type="info">
-        <Box flexDirection="column" gap={1}>
-          <SpinnerComponent
-            label={`${stageMessages[stage]}${dots}`}
-            type="dots"
-          />
-          {stage === "running_pipeline" && (
-            <Text dimColor marginTop={1}>
-              This may take a few moments...
-            </Text>
-          )}
-          {stage === "generating" && (
-            <Text dimColor marginTop={1}>
-              AI is analyzing your code and generating documentation...
-            </Text>
-          )}
-        </Box>
-      </InfoBox>
+      <ProgressStages stages={progressState.stages} />
     </Box>
   );
 };
