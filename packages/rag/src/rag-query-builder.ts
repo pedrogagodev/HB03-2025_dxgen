@@ -10,130 +10,44 @@ interface RagGenerateRequest {
 }
 
 /**
- * Mapeia cada feature para instruções específicas sobre quais tipos de arquivos
- * são mais relevantes para a geração da documentação.
+ * Simple, focused RAG query builder.
+ * Creates a single, well-crafted query for each documentation type.
  */
-const FEATURE_FILE_PRIORITIES: Record<
+const FEATURE_QUERIES: Record<
   RagWizardFeature,
-  {
-    priorityFiles: string[];
-    priorityPatterns: string[];
-    description: string;
-  }
+  (style: string) => string
 > = {
-  "api-docs": {
-    priorityFiles: [
-      "API routes",
-      "endpoints",
-      "controllers",
-      "handlers",
-      "route definitions",
-      "request/response types",
-      "API schemas",
-      "middleware",
-      "authentication",
-      "authorization",
-    ],
-    priorityPatterns: [
-      "routes",
-      "api",
-      "controllers",
-      "handlers",
-      "endpoints",
-      "middleware",
-    ],
-    description:
-      "API documentation focusing on endpoints, routes, request/response schemas, and API contracts",
+  readme: (style: string) => {
+    const baseQuery = "Retrieve the most important project files for creating a comprehensive README: package.json files, configuration files (tsconfig, turbo.json, .env.example), main entry points (index.ts, main.ts, server.ts), and existing README/documentation.";
+    const styleHint = style ? ` Documentation style: "${style}".` : "";
+    return `${baseQuery}${styleHint}`;
   },
-  readme: {
-    priorityFiles: [
-      "main entry points",
-      "configuration files",
-      "package.json",
-      "setup instructions",
-      "installation guides",
-      "project structure",
-      "getting started",
-      "main features",
-      "architecture overview",
-    ],
-    priorityPatterns: [
-      "README",
-      "package.json",
-      "config",
-      "setup",
-      "main",
-      "index",
-      "entry",
-    ],
-    description:
-      "README documentation covering project overview, setup, installation, and main features",
+  
+  "api-docs": (style: string) => {
+    const baseQuery = "Retrieve API-related files: route definitions, endpoint handlers, controllers, API schemas, request/response types, middleware, and authentication/authorization logic.";
+    const styleHint = style ? ` Documentation style: "${style}".` : "";
+    return `${baseQuery}${styleHint}`;
   },
-  diagram: {
-    priorityFiles: [
-      "architecture files",
-      "component structure",
-      "data flow",
-      "system design",
-      "module relationships",
-      "dependency graphs",
-      "service definitions",
-      "database schemas",
-    ],
-    priorityPatterns: [
-      "architecture",
-      "components",
-      "services",
-      "modules",
-      "schema",
-      "models",
-      "types",
-    ],
-    description:
-      "Architecture diagrams showing system structure, component relationships, and data flow",
+  
+  diagram: (style: string) => {
+    const baseQuery = "Retrieve architecture and system design files: main modules, services, components, data models, database schemas, and key integration points.";
+    const styleHint = style ? ` Documentation style: "${style}".` : "";
+    return `${baseQuery}${styleHint}`;
   },
-  summary: {
-    priorityFiles: [
-      "all project files",
-      "source code",
-      "documentation",
-      "configuration",
-      "tests",
-      "scripts",
-    ],
-    priorityPatterns: ["*"],
-    description:
-      "Comprehensive repository summary covering all aspects of the project",
+  
+  summary: (style: string) => {
+    const baseQuery = "Retrieve a representative sample of the project: configuration files, main entry points, core business logic, key modules, and documentation.";
+    const styleHint = style ? ` Documentation style: "${style}".` : "";
+    return `${baseQuery}${styleHint}`;
   },
 };
 
+/**
+ * Build a single, focused RAG query for the given feature.
+ * Simple and performant - one query per documentation type.
+ */
 export function buildRagQuery(request: RagGenerateRequest): string {
   const { feature, style } = request.wizard;
-  const featureConfig = FEATURE_FILE_PRIORITIES[feature];
-
-  const basePrompt = `Retrieve files relevant for ${featureConfig.description}.`;
-
-  const fileTypesInstruction = `Prioritize files related to: ${featureConfig.priorityFiles.join(", ")}.`;
-
-  const patternsInstruction = `Look for files matching these patterns: ${featureConfig.priorityPatterns.join(", ")}.`;
-
-  let styleInstruction = "";
-  if (style && style.trim().length > 0) {
-    styleInstruction = `The documentation style should be: "${style}". Consider this when selecting files that match the desired tone and depth.`;
-  }
-
-  const exclusionInstruction = `Exclude: test files, build artifacts, node_modules, .git, temporary files, and generated code unless directly relevant to the ${feature} generation.`;
-
-  const completenessInstruction = `Return a comprehensive set of files that together provide enough context to generate accurate ${feature}. Include both high-level overview files and detailed implementation files when relevant.`;
-
-  const queryParts = [
-    basePrompt,
-    fileTypesInstruction,
-    patternsInstruction,
-    styleInstruction,
-    exclusionInstruction,
-    completenessInstruction,
-  ].filter(Boolean);
-
-  return queryParts.join(" ");
+  return FEATURE_QUERIES[feature](style);
 }
+

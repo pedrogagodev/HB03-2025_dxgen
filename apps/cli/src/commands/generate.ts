@@ -3,7 +3,7 @@ import {
   runGenerateCommand,
   writeDocumentationFile,
 } from "@repo/ai";
-import { buildRagQuery, runRagPipeline } from "@repo/rag";
+import * as Rag from "@repo/rag";
 import type { User } from "@supabase/supabase-js";
 import { Command } from "commander";
 import { checkUsageLimits, incrementUsage } from "../lib/usage";
@@ -59,6 +59,7 @@ generateCommand.action(async (_options, command) => {
     process.exit(1);
   }
 
+  // Get user answers for documentation generation
   const answers = await getGenerateAnswers();
 
   if (!answers) {
@@ -67,14 +68,22 @@ generateCommand.action(async (_options, command) => {
   }
 
   const request = mapGenerateAnswersToRequest(answers);
-  console.log({ request });
+  const projectRoot = process.cwd();
 
-  // Run the pipeline
-  const queryToFindRelevantFiles = buildRagQuery(request);
+  console.log("\n🚀 Starting documentation generation...");
+  console.log(`   Feature: ${request.wizard.feature}`);
+  console.log(`   Style: ${request.wizard.style || "default"}`);
+  console.log(`   Output: ${request.wizard.outputDir}\n`);
 
-  const { documents, syncSummary } = await runRagPipeline({
-    rootDir: process.cwd(),
-    query: queryToFindRelevantFiles,
+  // Build RAG query - single, focused query per feature
+  const query = Rag.buildRagQuery(request);
+
+  console.log("📡 Retrieving relevant files from codebase...");
+
+  // Run RAG pipeline with optimized parameters
+  const pipelineOptions: Rag.RagPipelineOptions = {
+    rootDir: projectRoot,
+    query,
     pinecone: {
       index: "dxgen-docs",
       apiKey: process.env.PINECONE_API_KEY,
@@ -87,37 +96,49 @@ generateCommand.action(async (_options, command) => {
       enabled: request.wizard.sync,
       fullReindex: request.wizard.sync,
     },
+    // Optimized retrieval parameters
+    // Use more documents for README to get better structure coverage
     retrieverOptions: {
-      topK: 50,
+      topK: request.wizard.feature === "readme" ? 35 : 25,
     },
+  };
+
+  const { documents, syncSummary } = await Rag.runRagPipeline(pipelineOptions);
+
+  console.log(`   Retrieved ${documents.length} relevant documents\n`);
+
+  if (syncSummary) {
+    console.log("📦 Sync Summary:");
+    console.log(`   Index: ${syncSummary.index}`);
+    console.log(`   Namespace: ${syncSummary.namespace}`);
+    console.log(`   Upserted: ${syncSummary.upsertedCount} chunks\n`);
+  }
+
+  // Generate documentation using the streamlined pipeline
+  const result = await runGenerateCommand(request, {
+    documents,
   });
-
-  console.log({ queryToFindRelevantFiles });
-
-  console.log("documents: ", JSON.stringify(documents, null, 2));
-  console.log({ syncSummary });
-
-  const result = await runGenerateCommand(request, { documents }); // langchain.llm
 
   if (!result) {
     console.log("No documentation was generated.");
     process.exit(0);
   }
 
-  // Escreve o arquivo usando o pacote @repo/ai
+  // Write the generated documentation to file
   const writeResult = await writeDocumentationFile(request, result, {
     onFileExists: await createPromptFileExistsHandler(),
   });
 
   if (!writeResult.success) {
-    console.error(`\n❌ Erro ao escrever arquivo: ${writeResult.error}`);
-    console.error(`Caminho: ${writeResult.filePath}\n`);
+    console.error(`\n❌ Error writing file: ${writeResult.error}`);
+    console.error(`Path: ${writeResult.filePath}\n`);
     process.exit(1);
   }
 
-  console.log(`\n✅ Documentação salva com sucesso!`);
-  console.log(`📄 Arquivo: ${writeResult.filePath}\n`);
+  console.log(`\n✅ Documentation generated successfully!`);
+  console.log(`📄 File: ${writeResult.filePath}\n`);
 
+  // Update usage statistics
   try {
     const usageResult = await incrementUsage(user.id);
 

@@ -1,8 +1,8 @@
 import type { Document } from "@langchain/core/documents";
 import { HumanMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
-import type { FormatContextOptions, InvokeOptions, TokenUsage } from "../types";
 import "dotenv/config";
+import type { FormatContextOptions, InvokeOptions, TokenUsage } from "../types";
 
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
@@ -14,7 +14,7 @@ if (!apiKey) {
 const model = new ChatOpenAI({
   model: "gpt-4o-mini",
   apiKey,
-  temperature: 0.7,
+  temperature: 0.3,
   maxRetries: 3,
 });
 
@@ -22,8 +22,8 @@ export function formatContext(
   documents: Document[],
   options: FormatContextOptions = {},
 ): string {
-  const maxEntries = options.maxEntries ?? 8;
-  const maxCharsPerEntry = options.maxCharsPerEntry ?? 1_200;
+  const maxEntries = options.maxEntries ?? 15;
+  const maxCharsPerEntry = options.maxCharsPerEntry ?? 2_000;
 
   return documents
     .slice(0, maxEntries)

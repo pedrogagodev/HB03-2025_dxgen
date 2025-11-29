@@ -32,6 +32,16 @@ export interface FileChunkMetadata {
   chunkCount: number;
   startLine: number;
   endLine: number;
+  /**
+   * Optional semantic flags to improve retrieval and downstream context assembly.
+   * These are derived from file path and content heuristics during chunking.
+   */
+  fileType?: "code" | "config" | "docs" | "test" | "other";
+  isConfig?: boolean;
+  isPackageJson?: boolean;
+  isReadme?: boolean;
+  isEnvExample?: boolean;
+  isCiConfig?: boolean;
 }
 
 export interface FileChunk {
@@ -91,6 +101,12 @@ export interface RetrieverOptions {
   scoreThreshold?: number;
   filter?: Record<string, unknown>;
   hybridFallback?: import("@langchain/core/retrievers").BaseRetriever;
+  /**
+   * Optional list of path prefixes (using forward slashes) for relativePath metadata
+   * that should be excluded from retrieval results. This is applied as a
+   * post-filter on returned Documents, so it also works with existing indexes.
+   */
+  excludeRelativePathPrefixes?: string[];
 }
 
 export interface RagPipelineOptions {
@@ -104,7 +120,13 @@ export interface RagPipelineOptions {
   retrieverOptions?: Omit<
     RetrieverOptions,
     "pinecone" | "context" | "embeddings"
-  >;
+  > & {
+    /**
+     * Optional list of path prefixes (using forward slashes) for relativePath metadata
+     * that should be excluded from retrieval results.
+     */
+    excludeRelativePathPrefixes?: string[];
+  };
   sync?: {
     enabled?: boolean;
     fullReindex?: boolean;
