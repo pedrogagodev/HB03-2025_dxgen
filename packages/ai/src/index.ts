@@ -33,28 +33,19 @@ export async function runGenerateCommand(
 ): Promise<GenerateResult> {
   const { documents, stack: providedStack, projectContext: providedContext } = options;
 
-  console.log("\n🚀 Starting AI Documentation Agent...");
-  console.log(`   Documents: ${documents.length}`);
-
   // Step 1: Auto-detect stack if not provided (for context)
   let stack = providedStack;
   if (!stack && documents.length > 0) {
-    console.log("\n📊 Pre-analyzing technology stack...");
     stack = await detectStack(documents);
-    console.log(
-      `   ✓ Detected: ${stack.language}${stack.framework ? ` + ${stack.framework}` : ""}`,
-    );
   }
 
   // Step 2: Build deterministic project context if not provided
   let projectContext = providedContext;
   if (!projectContext) {
-    console.log("\n📂 Building project context...");
     projectContext = await buildProjectContext(request.project.rootPath, {
       stack,
       maxStructureDepth: 5, // Increased from 3 to 5 for better structure accuracy
     });
-    console.log(`   ✓ Found ${projectContext.packages.length} package(s)`);
   }
 
   // Step 3: Execute the AI agent
