@@ -1,5 +1,9 @@
 import { existsSync } from "node:fs";
 import { Command } from "commander";
+import { render } from "ink";
+import React from "react";
+import { NotLoggedInView } from "../components/NotLoggedInView";
+import { StatusView } from "../components/StatusView";
 import { getSessionFilePath } from "../lib/auth/session";
 import { supabase } from "../lib/supabase";
 import { checkUsageLimits } from "../lib/usage";
@@ -7,8 +11,6 @@ import { checkUsageLimits } from "../lib/usage";
 export const statusCommand = new Command("status")
   .description("Show current authentication status")
   .action(async () => {
-    console.log("\n📊 Authentication Status\n");
-
     const sessionPath = getSessionFilePath();
     const sessionExists = existsSync(sessionPath);
 
@@ -19,13 +21,12 @@ export const statusCommand = new Command("status")
       } = await supabase.auth.getSession();
 
       if (error) {
-        console.log("❌ Error checking session:", error.message);
+        console.error("❌ Error checking session:", error.message);
         return;
       }
 
       if (!session) {
-        console.log("🔒 Not logged in");
-        console.log('\n👉 Run "dxgen login" to authenticate.\n');
+        render(React.createElement(NotLoggedInView));
         return;
       }
 
@@ -35,8 +36,10 @@ export const statusCommand = new Command("status")
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        console.log("⚠️  Session exists but user validation failed");
-        console.log('👉 Try running "dxgen logout" and "dxgen login" again.\n');
+        console.error("⚠️  Session exists but user validation failed");
+        console.error(
+          '👉 Try running "dxgen logout" and "dxgen login" again.\n',
+        );
         return;
       }
 
@@ -46,71 +49,35 @@ export const statusCommand = new Command("status")
       const now = new Date();
       const isExpired = expiresAt ? expiresAt < now : false;
 
-      console.log(`✅ Logged in as: ${user.email || user.id}`);
-
-      if (user.user_metadata?.user_name) {
-        console.log(`👤 GitHub username: ${user.user_metadata.user_name}`);
-      }
-
-      if (user.user_metadata?.avatar_url) {
-        console.log(`🖼️  Avatar: ${user.user_metadata.avatar_url}`);
-      }
-
-      console.log("");
-
-      if (expiresAt) {
-        if (isExpired) {
-          console.log(
-            "⚠️  Access token: Expired (will auto-refresh on next command)",
-          );
-        } else {
-          const timeLeft = formatTimeRemaining(
-            expiresAt.getTime() - now.getTime(),
-          );
-          console.log(`🕐 Access token expires in: ${timeLeft}`);
-        }
-      }
-
-      console.log(`📁 Session file: ${sessionPath}`);
-
-      if (!sessionExists) {
-        console.log("⚠️  Warning: Session file not found on disk");
-      }
-
-      if (user.app_metadata?.provider) {
-        console.log(`🔐 Auth provider: ${user.app_metadata.provider}`);
-      }
+      let usageStatus: Awaited<ReturnType<typeof checkUsageLimits>> | undefined;
+      let usageError: string | undefined;
 
       try {
-        const usageStatus = await checkUsageLimits(user.id);
-
-        console.log("\n📊 Usage Statistics:");
-        console.log(
-          `  Docs generated: ${usageStatus.docs_used}/${usageStatus.limit_value} this month`,
-        );
-
-        const remaining = usageStatus.limit_value - usageStatus.docs_used;
-        console.log(`  Remaining: ${remaining} docs`);
-        console.log(`  Resets in: ${usageStatus.days_until_reset} days`);
-
-        const percentage =
-          (usageStatus.docs_used / usageStatus.limit_value) * 100;
-        if (percentage >= 90) {
-          console.log("\n⚠️  Approaching monthly limit!");
-          console.log("🚀 Upgrade to Pro: https://dxgen.io/pricing");
-        } else if (percentage >= 75) {
-          console.log("\n💡 75% of monthly limit used");
-        }
+        usageStatus = await checkUsageLimits(user.id);
       } catch (error) {
         const errorMsg = (error as Error).message;
-        console.log("\n⚠️  Could not fetch usage statistics");
-
         if (errorMsg === "PROFILE_NOT_FOUND") {
-          console.log("Profile not found. Try: dxgen logout && dxgen login");
+          usageError = "Profile not found. Try: dxgen logout && dxgen login";
+        } else {
+          usageError = "Could not fetch usage statistics";
         }
       }
 
-      console.log("");
+      render(
+        React.createElement(StatusView, {
+          email: user.email || user.id,
+          username: user.user_metadata?.user_name,
+          provider: user.app_metadata?.provider,
+          sessionPath,
+          sessionExists,
+          expiresIn: expiresAt
+            ? formatTimeRemaining(expiresAt.getTime() - now.getTime())
+            : undefined,
+          isExpired,
+          usageStatus,
+          usageError,
+        }),
+      );
     } catch (error) {
       console.error("❌ Unexpected error:", error);
     }
