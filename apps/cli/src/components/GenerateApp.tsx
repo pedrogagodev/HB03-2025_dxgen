@@ -1,63 +1,68 @@
 import { Box } from "ink";
 import React, { useEffect, useState } from "react";
+import type { ProgressState, Stage } from "../types/progress.types";
+import { initializeStages } from "../utils/stage.utils";
 import { GenerateView } from "./GenerateView";
 
-export type GenerateStage =
-	| "building_query"
-	| "running_pipeline"
-	| "generating"
-	| "writing_file"
-	| "updating_usage"
-	| "complete"
-	| "error";
-
 interface GenerateAppProps {
-	onStageChange: (callback: (stage: GenerateStage) => void) => void;
-	onError: (callback: (error: string) => void) => void;
-	onComplete: (
-		callback: (data: {
-			filePath: string;
-			usage?: UsageInfo;
-		}) => void,
-	) => void;
-}
-
-interface UsageInfo {
-	current: number;
-	limit: number;
-	remaining: number;
+  onProgressInit: (callbacks: {
+    updateStage: (stageId: string, updates: Partial<Stage>) => void;
+    addGeneratedFile: (filePath: string) => void;
+    completeGeneration: () => void;
+  }) => void;
+  onError: (callback: (error: string) => void) => void;
 }
 
 export const GenerateApp: React.FC<GenerateAppProps> = ({
-	onStageChange,
-	onError,
-	onComplete,
+  onProgressInit,
+  onError,
 }) => {
-	const [stage, setStage] = useState<GenerateStage>("building_query");
-	const [error, setError] = useState<string | undefined>();
-	const [resultPath, setResultPath] = useState<string | undefined>();
-	const [usageInfo, setUsageInfo] = useState<UsageInfo | undefined>();
+  const [progressState, setProgressState] = useState<ProgressState>({
+    stages: initializeStages(),
+    currentStageIndex: 0,
+    startTime: Date.now(),
+    generatedFiles: [],
+  });
+  const [error, setError] = useState<string | undefined>();
 
-	useEffect(() => {
-		onStageChange(setStage);
-		onError(setError);
-		onComplete((data) => {
-			setResultPath(data.filePath);
-			if (data.usage) {
-				setUsageInfo(data.usage);
-			}
-			setStage("complete");
-		});
-	}, [onStageChange, onError, onComplete]);
+  useEffect(() => {
+    onProgressInit({
+      updateStage: (stageId: string, updates: Partial<Stage>) => {
+        setProgressState((prev) => {
+          const newStages = prev.stages.map((stage) =>
+            stage.id === stageId ? { ...stage, ...updates } : stage,
+          );
+          return {
+            ...prev,
+            stages: newStages,
+          };
+        });
+      },
+      addGeneratedFile: (filePath: string) => {
+        setProgressState((prev) => ({
+          ...prev,
+          generatedFiles: [...prev.generatedFiles, filePath],
+        }));
+      },
+      completeGeneration: () => {
+        setProgressState((prev) => ({
+          ...prev,
+          endTime: Date.now(),
+        }));
+      },
+    });
+    onError(setError);
+  }, [onProgressInit, onError]);
 
-	return (
-		<Box>
-			<GenerateView
-				stage={stage}
-				error={error}
-				resultPath={resultPath}
-				usageInfo={usageInfo}
-			/>
-		</Box>
-	);
+  const isComplete = progressState.endTime !== undefined;
+
+  return (
+    <Box>
+      <GenerateView
+        progressState={progressState}
+        error={error}
+        isComplete={isComplete}
+      />
+    </Box>
+  );
 };
