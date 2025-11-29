@@ -122,6 +122,9 @@ const buildPackages = async (
         private?: boolean;
         scripts?: Record<string, string>;
         workspaces?: string[] | Record<string, string[]>;
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+        bin?: string | Record<string, string>;
       };
 
       packages.push({
@@ -131,14 +134,11 @@ const buildPackages = async (
         private: json.private,
         scripts: json.scripts,
         workspaces: json.workspaces,
+        dependencies: json.dependencies,
+        devDependencies: json.devDependencies,
+        bin: json.bin,
       });
-    } catch {
-      // If any individual package.json fails to parse, skip it
-      // and continue building context from the remaining ones.
-      // This keeps the builder resilient to partial corruption.
-      // eslint-disable-next-line no-continue
-      continue;
-    }
+    } catch {}
   }
 
   return packages;
@@ -189,9 +189,9 @@ export async function buildProjectContext(
 
   const packages = await buildPackages(rootPath, packageJsonPaths);
 
-  const loadConfigFile = async (rel: string | undefined): Promise<
-    ProjectConfigFile | undefined
-  > => {
+  const loadConfigFile = async (
+    rel: string | undefined,
+  ): Promise<ProjectConfigFile | undefined> => {
     if (!rel) return undefined;
     const fullPath = path.join(rootPath, rel);
     const content = await readFile(fullPath, "utf8");
@@ -214,11 +214,7 @@ export async function buildProjectContext(
         const fullPath = path.join(rootPath, rel);
         const content = await readFile(fullPath, "utf8");
         docs.push({ path: rel, content });
-      } catch {
-        // Non-fatal: skip unreadable docs
-        // eslint-disable-next-line no-continue
-        continue;
-      }
+      } catch {}
     }
     return docs;
   };
@@ -239,12 +235,11 @@ export async function buildProjectContext(
     if (cfg) ciConfigs.push(cfg);
   }
 
-  const knownConfigSet = new Set<string>([
-    ...tsconfigPaths,
-    turboPath,
-    envExamplePath,
-    ...ciConfigPaths,
-  ].filter((p): p is string => Boolean(p)));
+  const knownConfigSet = new Set<string>(
+    [...tsconfigPaths, turboPath, envExamplePath, ...ciConfigPaths].filter(
+      (p): p is string => Boolean(p),
+    ),
+  );
 
   const otherConfigs: ProjectConfigFile[] = [];
   for (const rel of relativePaths) {
@@ -261,11 +256,7 @@ export async function buildProjectContext(
       const fullPath = path.join(rootPath, rel);
       const content = await readFile(fullPath, "utf8");
       otherConfigs.push({ path: rel, content });
-    } catch {
-      // Non-fatal
-      // eslint-disable-next-line no-continue
-      continue;
-    }
+    } catch {}
   }
 
   const existingDocs = await loadDocs(readmePaths);
@@ -289,5 +280,3 @@ export async function buildProjectContext(
 
   return context;
 }
-
-

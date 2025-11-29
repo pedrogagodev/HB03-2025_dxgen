@@ -47,6 +47,9 @@ export interface ProjectPackage {
   private?: boolean;
   scripts?: Record<string, string>;
   workspaces?: string[] | Record<string, string[]>;
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+  bin?: string | Record<string, string>;
 }
 
 export interface ProjectConfigFile {
