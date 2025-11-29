@@ -64,74 +64,167 @@ export function createStackDetectorTool(documents: Document[]) {
 /**
  * Tool: Detect API endpoints in codebase
  * Returns whether project has API routes and what type
+ * 
+ * IMPROVED: More accurate detection with better pattern matching
  */
 export function createApiDetectorTool(documents: Document[]) {
   return tool(
     async () => {
       console.log("  🔍 Agent: Checking for API endpoints...");
 
-      const apiRelatedDocs = documents.filter((doc) => {
+      // More comprehensive endpoint patterns
+      const endpointPatterns = [
+        // Express/Node.js
+        /\.(get|post|put|delete|patch)\s*\(\s*['"`]\/[^'"`]+['"`]/gi,
+        /router\.(get|post|put|delete|patch)\s*\(\s*['"`]\/[^'"`]+['"`]/gi,
+        // Next.js API routes
+        /export\s+(async\s+)?function\s+(GET|POST|PUT|DELETE|PATCH)\s*\(/gi,
+        // FastAPI/Python
+        /@(app|router)\.(get|post|put|delete|patch)\s*\(\s*['"]\/[^'"]+['"]/gi,
+        // NestJS
+        /@(Get|Post|Put|Delete|Patch)\s*\(\s*['"`][^'"`]*['"`]?\s*\)/gi,
+        // Flask/Python
+        /@(app|bp|blueprint)\.(route|get|post|put|delete|patch)/gi,
+        // Go HTTP handlers
+        /http\.HandleFunc\s*\(\s*['"`]\/[^'"`]+['"`]/gi,
+        // Gin (Go)
+        /router\.(GET|POST|PUT|DELETE|PATCH)\s*\(\s*['"`]\/[^'"`]+['"`]/gi,
+      ];
+
+      let totalEndpointCount = 0;
+      const apiFilesFound: { path: string; endpointCount: number }[] = [];
+
+      for (const doc of documents) {
         const metadata = (doc.metadata ?? {}) as Record<string, unknown>;
         const path =
           (typeof metadata.relativePath === "string" && metadata.relativePath) ||
           (typeof metadata.path === "string" && metadata.path) ||
           "";
         const lower = path.toLowerCase();
-        const content = doc.pageContent.toLowerCase();
+        const content = doc.pageContent;
 
-        return (
-          lower.includes("api") ||
-          lower.includes("route") ||
-          lower.includes("controller") ||
-          lower.includes("endpoint") ||
+        // More comprehensive API file detection
+        const isApiFile =
+          // Path-based detection
+          lower.includes("/api/") ||
+          lower.includes("/routes/") ||
+          lower.includes("/controllers/") ||
+          lower.includes("/handlers/") ||
+          lower.includes("/endpoints/") ||
+          lower.includes("route.ts") ||
+          lower.includes("route.js") ||
+          lower.includes("router.ts") ||
+          lower.includes("router.js") ||
+          lower.endsWith("_controller.py") ||
+          lower.endsWith("_handler.go") ||
+          lower.endsWith("_routes.py") ||
+          lower.endsWith("_routes.ts") ||
+          lower.endsWith("_routes.js") ||
+          // Content-based detection
           content.includes("@route") ||
-          content.includes("@app.") ||
-          content.includes("app.get") ||
-          content.includes("app.post") ||
-          content.includes("router.") ||
-          content.includes("express(") ||
-          content.includes("fastapi")
-        );
+          content.includes("@app.route") ||
+          content.includes("app.get(") ||
+          content.includes("app.post(") ||
+          content.includes("router.get(") ||
+          content.includes("router.post(") ||
+          content.includes("express()") ||
+          content.includes("from fastapi import") ||
+          content.includes("from flask import");
+
+        if (!isApiFile) continue;
+
+        // Count actual endpoint definitions
+        let fileEndpointCount = 0;
+        for (const pattern of endpointPatterns) {
+          const matches = content.match(pattern);
+          if (matches) {
+            fileEndpointCount += matches.length;
+          }
+        }
+
+        if (fileEndpointCount > 0) {
+          apiFilesFound.push({ path, endpointCount: fileEndpointCount });
+          totalEndpointCount += fileEndpointCount;
+        }
+      }
+
+      const hasApi = apiFilesFound.length >= 1 && totalEndpointCount >= 2;
+
+      if (!hasApi) {
+        const reason = apiFilesFound.length === 0
+          ? "No API files detected in the project"
+          : `Found ${apiFilesFound.length} API-related files but only ${totalEndpointCount} endpoint(s) - need at least 2 endpoints`;
+
+        console.log(`     ✓ ${reason}`);
+        return JSON.stringify({
+          hasApi: false,
+          apiType: null,
+          endpointCount: totalEndpointCount,
+          apiFiles: apiFilesFound,
+          notes: reason,
+        });
+      }
+
+      // If we have APIs, use LLM to determine type
+      const apiDocs = documents.filter((doc) => {
+        const metadata = (doc.metadata ?? {}) as Record<string, unknown>;
+        const path =
+          (typeof metadata.relativePath === "string" && metadata.relativePath) ||
+          "";
+        return apiFilesFound.some((f) => f.path === path);
       });
 
-      const hasApi = apiRelatedDocs.length > 0;
+      const context = formatContext(apiDocs.slice(0, 15), {
+        maxEntries: 15,
+        maxCharsPerEntry: 1_500,
+      });
 
-      if (hasApi) {
-        const context = formatContext(apiRelatedDocs.slice(0, 10), {
-          maxEntries: 10,
-          maxCharsPerEntry: 1_000,
-        });
+      const prompt = [
+        new SystemMessage(
+          "Analyze these API files and determine the API type. Respond ONLY with JSON: " +
+          '{"hasApi": true, "apiType": "REST|GraphQL|gRPC|WebSocket", "endpointCount": number, "notes": "..."}'
+        ),
+        new HumanMessage(`Found ${totalEndpointCount} endpoints in ${apiFilesFound.length} files:\n\n${context}`),
+      ];
 
-        const prompt = [
-          new SystemMessage(
-            "Analyze these files and determine the API type. Respond ONLY with JSON: " +
-            '{"hasApi": true, "apiType": "REST|GraphQL|gRPC", "endpointCount": number, "notes": "..."}'
-          ),
-          new HumanMessage(`Analyze:\n\n${context}`),
-        ];
-
-        const response = await invokeLLM({ prompt, maxContextTokens: 3_000 });
+      try {
+        const response = await invokeLLM({ prompt, maxContextTokens: 5_000 });
         const content = extractContent(response);
 
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          const result = JSON.parse(jsonMatch[0]);
-          console.log(`     ✓ API detected: ${result.apiType} (${result.endpointCount} endpoints)`);
-          return JSON.stringify(result);
+          const result = JSON.parse(jsonMatch[0]) as {
+            hasApi: boolean;
+            apiType: string;
+            endpointCount: number;
+            notes: string;
+          };
+          console.log(`     ✓ API detected: ${result.apiType} (${totalEndpointCount} endpoints in ${apiFilesFound.length} files)`);
+          return JSON.stringify({
+            ...result,
+            endpointCount: totalEndpointCount,
+            apiFiles: apiFilesFound,
+          });
         }
+      } catch (error) {
+        console.log(`     ⚠️  LLM analysis failed, using heuristic: ${(error as Error).message}`);
       }
 
-      console.log("     ✓ No API endpoints found");
-      return JSON.stringify({
-        hasApi: false,
-        apiType: null,
-        endpointCount: 0,
-        notes: "No API routes detected in codebase",
-      });
+      // Fallback: we know we have APIs, just couldn't classify type
+      const result = {
+        hasApi: true,
+        apiType: "REST", // Default assumption
+        endpointCount: totalEndpointCount,
+        apiFiles: apiFilesFound,
+        notes: `Detected ${totalEndpointCount} endpoints across ${apiFilesFound.length} files`,
+      };
+
+      console.log(`     ✓ ${result.notes}`);
+      return JSON.stringify(result);
     },
     {
       name: "detect_api_endpoints",
-      description: "Checks if the project has API endpoints (REST, GraphQL, etc.). Use this before generating API documentation to validate the request makes sense.",
+      description: "Checks if the project has API endpoints (REST, GraphQL, WebSocket, etc.). Use this before generating API documentation to validate the request makes sense. This tool uses comprehensive pattern matching to detect actual endpoint definitions.",
       schema: z.object({}),
     },
   );
