@@ -2,7 +2,7 @@ import type { Document } from "@langchain/core/documents";
 import { HumanMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
 import "dotenv/config";
-import type { FormatContextOptions, InvokeOptions, TokenUsage } from "../types";
+import type { FormatContextOptions, InvokeOptions } from "../types";
 
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
@@ -53,14 +53,6 @@ export function formatContext(
     .join("\n\n");
 }
 
-const logTokenUsage = (usage: TokenUsage) => {
-  const { promptTokens, completionTokens, totalTokens } = usage;
-  console.log("\n📊 Token Usage:");
-  console.log(`  Input tokens:  ${promptTokens.toLocaleString()}`);
-  console.log(`  Output tokens: ${completionTokens.toLocaleString()}`);
-  console.log(`  Total tokens:  ${totalTokens.toLocaleString()}`);
-};
-
 export async function invokeLLM({
   prompt,
   context,
@@ -74,18 +66,6 @@ export async function invokeLLM({
     : prompt;
 
   const response = await model.invoke(finalMessages);
-
-  // Extract token usage from response metadata
-  const usage = response.response_metadata?.usage;
-  if (usage && typeof usage === "object") {
-    const tokenUsage: TokenUsage = {
-      promptTokens: (usage as { prompt_tokens?: number }).prompt_tokens ?? 0,
-      completionTokens:
-        (usage as { completion_tokens?: number }).completion_tokens ?? 0,
-      totalTokens: (usage as { total_tokens?: number }).total_tokens ?? 0,
-    };
-    logTokenUsage(tokenUsage);
-  }
 
   return response;
 }
