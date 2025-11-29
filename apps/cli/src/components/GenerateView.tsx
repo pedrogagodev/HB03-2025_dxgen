@@ -1,5 +1,5 @@
 import { Box, Text, useApp } from "ink";
-import React from "react";
+import type React from "react";
 import { useEffect, useState } from "react";
 import { Header } from "./Header";
 import { InfoBox } from "./InfoBox";
@@ -63,7 +63,6 @@ export const GenerateView: React.FC<GenerateViewProps> = ({
   if (stage === "error" && error) {
     return (
       <Box flexDirection="column">
-        <Header title="🤖 Documentation Generator" />
         <InfoBox type="error" title="Generation Failed">
           <Text>{error}</Text>
         </InfoBox>
@@ -74,7 +73,6 @@ export const GenerateView: React.FC<GenerateViewProps> = ({
   if (stage === "complete" && resultPath) {
     return (
       <Box flexDirection="column">
-        <Header title="🤖 Documentation Generator" />
         <InfoBox type="success" title="Documentation Generated Successfully">
           <Box flexDirection="column" gap={1}>
             <Text>
@@ -110,7 +108,7 @@ export const GenerateView: React.FC<GenerateViewProps> = ({
 
   return (
     <Box flexDirection="column">
-      <Header title="🤖 Documentation Generator" />
+      <Header title="Dxgen is generating your documentation" />
       <InfoBox type="info">
         <Box flexDirection="column" gap={1}>
           <SpinnerComponent
