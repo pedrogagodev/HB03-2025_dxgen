@@ -1,6 +1,6 @@
 /**
  * Global Styles - DxGen Frontend
- * 
+ *
  * ORGANIZAÇÃO:
  * 1. Imports e variáveis
  * 2. Reset e base
@@ -63,6 +63,44 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  /*---break---
+ */
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  /*---break---
+ */
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 }
 
 /* ============================================
@@ -88,17 +126,26 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image: 
+  background-image:
     linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
   background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  mask-image: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    black 40%,
+    transparent 100%
+  );
   animation: grid-pulse 8s ease-in-out infinite;
 }
 
 @keyframes grid-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 /* ============================================
@@ -120,7 +167,11 @@ body {
   height: 400px;
   top: -100px;
   left: 10%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.15) 0%,
+    transparent 70%
+  );
   animation-delay: 0s;
 }
 
@@ -129,7 +180,11 @@ body {
   height: 350px;
   top: 20%;
   right: 5%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(56, 189, 248, 0.12) 0%,
+    transparent 70%
+  );
   animation-delay: -4s;
   animation-duration: 15s;
 }
@@ -139,16 +194,29 @@ body {
   height: 300px;
   bottom: 10%;
   left: 30%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.1) 0%,
+    transparent 70%
+  );
   animation-delay: -8s;
   animation-duration: 18s;
 }
 
 @keyframes orb-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -20px) scale(1.05); }
-  50% { transform: translate(-20px, 30px) scale(0.95); }
-  75% { transform: translate(20px, 20px) scale(1.02); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 30px) scale(0.95);
+  }
+  75% {
+    transform: translate(20px, 20px) scale(1.02);
+  }
 }
 
 /* ============================================
@@ -159,16 +227,35 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: 
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 30%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      rgba(16, 185, 129, 0.12) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 20% 20%,
+      rgba(56, 189, 248, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 30%,
+      rgba(139, 92, 246, 0.06) 0%,
+      transparent 50%
+    );
   animation: aurora-shift 20s ease-in-out infinite;
 }
 
 @keyframes aurora-shift {
-  0%, 100% { opacity: 0.8; filter: hue-rotate(0deg); }
-  50% { opacity: 1; filter: hue-rotate(15deg); }
+  0%,
+  100% {
+    opacity: 0.8;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    filter: hue-rotate(15deg);
+  }
 }
 
 /* ============================================
@@ -193,8 +280,14 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(56, 189, 248, 0.3));
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.3),
+    rgba(56, 189, 248, 0.3)
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   mask-composite: exclude;
   pointer-events: none;
 }
