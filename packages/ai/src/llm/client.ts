@@ -2,6 +2,7 @@ import type { Document } from "@langchain/core/documents";
 import { HumanMessage } from "@langchain/core/messages";
 import { ChatOpenAI } from "@langchain/openai";
 import "dotenv/config";
+import { getAiEnvConfig } from "../env.js";
 import type { FormatContextOptions, InvokeOptions } from "../types";
 
 const apiKey = process.env.OPENAI_API_KEY;
@@ -11,19 +12,22 @@ if (!apiKey) {
   );
 }
 
+const envConfig = getAiEnvConfig();
 const model = new ChatOpenAI({
-  model: "gpt-4o-mini",
+  model: envConfig.openaiModel,
   apiKey,
-  temperature: 0.3,
-  maxRetries: 3,
+  temperature: envConfig.temperature,
+  maxRetries: envConfig.maxRetries,
 });
 
 export function formatContext(
   documents: Document[],
   options: FormatContextOptions = {},
 ): string {
-  const maxEntries = options.maxEntries ?? 15;
-  const maxCharsPerEntry = options.maxCharsPerEntry ?? 2_000;
+  const envConfig = getAiEnvConfig();
+  const maxEntries = options.maxEntries ?? envConfig.maxEntriesDefault;
+  const maxCharsPerEntry =
+    options.maxCharsPerEntry ?? envConfig.maxCharsPerEntryDefault;
 
   return documents
     .slice(0, maxEntries)

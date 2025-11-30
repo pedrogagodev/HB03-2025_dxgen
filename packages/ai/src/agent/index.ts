@@ -4,6 +4,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import "dotenv/config";
 import { createAgent } from "langchain";
 
+import { getAiEnvConfig } from "../env.js";
 import type {
   DetectedStack,
   GenerateRequest,
@@ -27,11 +28,12 @@ if (!apiKey) {
   throw new Error("OPENAI_API_KEY is required");
 }
 
+const envConfig = getAiEnvConfig();
 const model = new ChatOpenAI({
-  model: "gpt-4o-mini",
+  model: envConfig.openaiModel,
   apiKey,
-  temperature: 0.3,
-  maxRetries: 3,
+  temperature: envConfig.temperature,
+  maxRetries: envConfig.maxRetries,
 });
 
 /**

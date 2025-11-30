@@ -1,11 +1,8 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import path from "node:path";
 
+import { getRagEnvConfig } from "./env.js";
 import type { ChunkOptions, FileChunk, ProjectFile } from "./types.js";
-
-// Optimized chunking parameters for better semantic retrieval
-const DEFAULT_CHUNK_SIZE = 1500;
-const DEFAULT_CHUNK_OVERLAP = 200;
 
 const countLinesUntil = (text: string, index: number) => {
   if (index <= 0) return 1;
@@ -76,9 +73,10 @@ export async function chunkProjectFiles(
   files: ProjectFile[],
   options: ChunkOptions = {},
 ): Promise<FileChunk[]> {
+  const envConfig = getRagEnvConfig();
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: options.chunkSize ?? DEFAULT_CHUNK_SIZE,
-    chunkOverlap: options.chunkOverlap ?? DEFAULT_CHUNK_OVERLAP,
+    chunkSize: options.chunkSize ?? envConfig.chunkSize,
+    chunkOverlap: options.chunkOverlap ?? envConfig.chunkOverlap,
   });
 
   const chunks: FileChunk[] = [];
