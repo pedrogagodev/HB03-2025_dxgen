@@ -16,6 +16,7 @@ import { checkUsageLimits, incrementUsage } from "../lib/usage";
 import { mapGenerateAnswersToRequest } from "../mappers/generateRequest.mappers";
 import { getGenerateAnswers } from "../prompts/generate.prompts";
 import type { Stage } from "../types/progress.types";
+import { buildRagPipelineOptions } from "../utils/rag.utils";
 
 export async function handleGenerate(): Promise<void> {
   // Show loading spinner during auth and setup
@@ -139,25 +140,9 @@ export async function handleGenerate(): Promise<void> {
     });
 
     const queryToFindRelevantFiles = buildRagQuery(request);
-    const { documents, syncSummary } = await runRagPipeline({
-      rootDir: process.cwd(),
-      query: queryToFindRelevantFiles,
-      pinecone: {
-        index: "dxgen-docs",
-        apiKey: process.env.PINECONE_API_KEY,
-      },
-      context: {
-        userId: user.id,
-        projectId: request.project.rootPath,
-      },
-      sync: {
-        enabled: request.wizard.sync,
-        fullReindex: request.wizard.sync,
-      },
-      retrieverOptions: {
-        topK: 50,
-      },
-    });
+    const pipelineOptions = buildRagPipelineOptions(request, user);
+    pipelineOptions.query = queryToFindRelevantFiles;
+    const { documents, syncSummary } = await runRagPipeline(pipelineOptions);
 
     // Detect stack from documents
     const stackInfo = await detectStack(documents);
