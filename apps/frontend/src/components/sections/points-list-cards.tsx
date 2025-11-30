@@ -1,6 +1,23 @@
 "use client";
 
 import { X, Check } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+};
 
 interface PointsListCardsProps {
   points: string[];
@@ -11,10 +28,17 @@ export function PointsListCards({ points, variant }: PointsListCardsProps) {
   const isProblem = variant === "problem";
 
   return (
-    <ul className="space-y-3">
+    <motion.ul
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.5 }}
+      className="space-y-3"
+    >
       {points.map((point, index) => (
-        <li
+        <motion.li
           key={index}
+          variants={cardVariants}
           className={`flex items-start gap-3 rounded-xl border p-3 backdrop-blur-sm transition-colors ${
             isProblem
               ? "border-red-500/10 bg-red-500/5 hover:bg-red-500/10"
@@ -37,8 +61,8 @@ export function PointsListCards({ points, variant }: PointsListCardsProps) {
           <span className="text-sm font-light leading-relaxed text-white/80">
             {point}
           </span>
-        </li>
+        </motion.li>
       ))}
-    </ul>
+    </motion.ul>
   );
 }

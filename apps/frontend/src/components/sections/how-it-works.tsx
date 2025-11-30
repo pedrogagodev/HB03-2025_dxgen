@@ -1,11 +1,6 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+import { motion, type Variants } from "framer-motion";
 
 const steps = [
   {
@@ -92,92 +87,49 @@ const colorClasses = {
   },
 };
 
-export function HowItWorks() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const stepsRef = useRef<(HTMLDivElement | null)[]>([]);
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
+  visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+};
 
-  useGSAP(
-    () => {
-      if (!headerRef.current) return;
-
-      // Header animation
-      gsap.set(headerRef.current.children, {
-        autoAlpha: 0,
-        y: 30,
-        filter: "blur(8px)",
-      });
-
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: "top 80%",
-            toggleActions: "play none none none",
-          },
-          defaults: { ease: "power3.out" },
-        })
-        .to(headerRef.current.children, {
-          autoAlpha: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.7,
-          stagger: 0.15,
-        });
-
-      // Steps animation
-      stepsRef.current.forEach((step) => {
-        if (!step) return;
-
-        const textContent = step.querySelector(".step-text");
-        const codeBlock = step.querySelector(".step-code");
-
-        gsap.set([textContent, codeBlock], {
-          autoAlpha: 0,
-          y: 40,
-          filter: "blur(8px)",
-        });
-
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: step,
-              start: "top 75%",
-              toggleActions: "play none none none",
-            },
-            defaults: { ease: "power3.out" },
-          })
-          .to(textContent, {
-            autoAlpha: 1,
-            y: 0,
-            filter: "blur(0px)",
-            duration: 0.8,
-          })
-          .to(
-            codeBlock,
-            {
-              autoAlpha: 1,
-              y: 0,
-              filter: "blur(0px)",
-              duration: 0.8,
-            },
-            "-=0.5",
-          );
-      });
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
     },
-    { scope: sectionRef },
-  );
+  },
+};
 
+const stepContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.3,
+    },
+  },
+};
+
+export function HowItWorks() {
   return (
     <section
-      ref={sectionRef}
       id="how-it-works"
       className="relative py-20 lg:py-32 overflow-hidden"
     >
       <div className="mx-auto max-w-7xl px-6 md:px-10 lg:px-16">
         {/* Header */}
-        <div ref={headerRef} className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1.5 backdrop-blur-sm mb-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.8 }}
+          className="text-center mb-20"
+        >
+          <motion.div
+            variants={fadeInUp}
+            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1.5 backdrop-blur-sm mb-6"
+          >
             <span className="text-[10px] font-light uppercase tracking-[0.08em] text-cyan-400/70">
               How it works
             </span>
@@ -185,11 +137,15 @@ export function HowItWorks() {
             <span className="text-xs font-light tracking-tight text-white/80">
               3 steps
             </span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extralight tracking-tight text-white">
+          </motion.div>
+          <motion.h2
+            variants={fadeInUp}
+            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-extralight tracking-tight text-white"
+          >
             From code to docs in minutes
-          </h2>
-        </div>
+          </motion.h2>
+        </motion.div>
 
         {/* Steps */}
         <div className="space-y-24 lg:space-y-32">
@@ -199,15 +155,20 @@ export function HowItWorks() {
             const isEven = index % 2 === 1;
 
             return (
-              <div
+              <motion.div
                 key={step.title}
-                ref={(el) => {
-                  stepsRef.current[index] = el;
-                }}
+                variants={stepContainerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.25 }}
                 className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center"
               >
                 {/* Text content */}
-                <div className={`step-text ${isEven ? "lg:order-2" : ""}`}>
+                <motion.div
+                  variants={fadeInUp}
+                  transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className={isEven ? "lg:order-2" : ""}
+                >
                   <div className="space-y-4">
                     <div
                       className={`inline-flex items-center justify-center w-10 h-10 rounded-xl border ${colors.number} text-sm font-light`}
@@ -221,10 +182,14 @@ export function HowItWorks() {
                       {step.description}
                     </p>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Code block */}
-                <div className={`step-code ${isEven ? "lg:order-1" : ""}`}>
+                <motion.div
+                  variants={fadeInUp}
+                  transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className={isEven ? "lg:order-1" : ""}
+                >
                   <div className="relative">
                     {/* Glow effect */}
                     <div
@@ -251,8 +216,8 @@ export function HowItWorks() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             );
           })}
         </div>

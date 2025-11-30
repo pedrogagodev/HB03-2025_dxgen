@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 interface TerminalLine {
   type: "command" | "blank" | "prompt" | "status" | "success" | "final";
@@ -121,17 +122,32 @@ export function DemoSection() {
 
   return (
     <section id="demo" ref={sectionRef} className="w-full">
-      <div className="w-full">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="w-full"
+      >
         {/* Headline */}
-        <div className="mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-6"
+        >
           <h2 className="font-(family-name:--font-space-grotesk) text-3xl md:text-4xl font-bold mb-2 text-white">
             47 seconds.
           </h2>
           <p className="text-base text-white/70">From zero to complete docs.</p>
-        </div>
+        </motion.div>
 
         {/* Terminal */}
-        <div className="relative">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.97 }}
+          transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.15 }}
+          className="relative"
+        >
           <div className="absolute -inset-1 bg-linear-to-r from-emerald-500/20 via-cyan-500/20 to-blue-500/20 rounded-xl blur-xl opacity-50" />
           <div className="relative bg-[#0D0D12] rounded-xl border border-white/10 overflow-hidden">
             {/* Terminal header */}
@@ -152,8 +168,8 @@ export function DemoSection() {
               )}
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

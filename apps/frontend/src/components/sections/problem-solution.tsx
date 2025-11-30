@@ -2,9 +2,27 @@
 
 import { useRef } from "react";
 import { Brain, FileCode, FileJson, FileText, Network } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
 import { AnimatedBeam } from "../ui/animated-beam";
 import { PointsListSimple } from "./points-list-simple";
 import { PointsListCards } from "./points-list-cards";
+
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+};
+
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.15 },
+  },
+};
 
 interface ProblemSolutionSectionProps {
   listVariant?: "simple" | "cards";
@@ -42,9 +60,18 @@ export function ProblemSolutionSection({
         {/* Two-column Problem vs Solution */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-0">
           {/* Problem Column */}
-          <div className="lg:border-r lg:border-white/10 lg:pr-12">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            className="lg:border-r lg:border-white/10 lg:pr-12"
+          >
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 px-3 py-1.5 backdrop-blur-sm">
+              <motion.div
+                variants={fadeInUp}
+                className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 px-3 py-1.5 backdrop-blur-sm"
+              >
                 <span className="text-[10px] font-light uppercase tracking-[0.08em] text-red-400/70">
                   Problem
                 </span>
@@ -52,20 +79,34 @@ export function ProblemSolutionSection({
                 <span className="text-xs font-light tracking-tight text-white/80">
                   The challenge
                 </span>
-              </div>
+              </motion.div>
 
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extralight tracking-tight text-white">
+              <motion.h2
+                variants={fadeInUp}
+                className="text-2xl sm:text-3xl lg:text-4xl font-extralight tracking-tight text-white"
+              >
                 Documentation is broken
-              </h2>
+              </motion.h2>
 
-              <PointsList points={problemPoints} variant="problem" />
+              <motion.div variants={fadeInUp}>
+                <PointsList points={problemPoints} variant="problem" />
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Solution Column */}
-          <div className="lg:pl-12">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            className="lg:pl-12"
+          >
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 backdrop-blur-sm">
+              <motion.div
+                variants={fadeInUp}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 backdrop-blur-sm"
+              >
                 <span className="text-[10px] font-light uppercase tracking-[0.08em] text-emerald-400/70">
                   Solution
                 </span>
@@ -73,19 +114,28 @@ export function ProblemSolutionSection({
                 <span className="text-xs font-light tracking-tight text-white/80">
                   The answer
                 </span>
-              </div>
+              </motion.div>
 
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extralight tracking-tight text-white">
+              <motion.h2
+                variants={fadeInUp}
+                className="text-2xl sm:text-3xl lg:text-4xl font-extralight tracking-tight text-white"
+              >
                 Docs that write themselves
-              </h2>
+              </motion.h2>
 
-              <PointsList points={solutionPoints} variant="solution" />
+              <motion.div variants={fadeInUp}>
+                <PointsList points={solutionPoints} variant="solution" />
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Animated Beam Diagram */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
           ref={containerRef}
           className="relative mt-16 lg:mt-24 h-48 md:h-64"
         >
@@ -114,7 +164,7 @@ export function ProblemSolutionSection({
           {/* Center brain */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/20 via-emerald-500/20 to-cyan-500/20 rounded-full blur-xl opacity-50" />
+              <div className="absolute -inset-4 bg-linear-to-r from-cyan-500/20 via-emerald-500/20 to-cyan-500/20 rounded-full blur-xl opacity-50" />
               <div
                 ref={brainRef}
                 className="relative p-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm"
@@ -223,7 +273,7 @@ export function ProblemSolutionSection({
             duration={5}
             delay={2.5}
           />
-        </div>
+        </motion.div>
       </div>
     </section>
   );

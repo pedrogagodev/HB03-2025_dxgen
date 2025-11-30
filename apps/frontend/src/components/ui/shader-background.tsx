@@ -1,13 +1,10 @@
 "use client";
 
-import { useGSAP } from "@gsap/react";
 import { shaderMaterial } from "@react-three/drei";
 import { Canvas, extend, useFrame } from "@react-three/fiber";
-import gsap from "gsap";
+import { motion } from "framer-motion";
 import { type Ref, useMemo, useRef } from "react";
 import * as THREE from "three";
-
-gsap.registerPlugin(useGSAP);
 
 const vertexShader = `
   varying vec2 vUv;
@@ -188,8 +185,6 @@ interface ShaderBackgroundProps {
 }
 
 export function ShaderBackground({ className = "" }: ShaderBackgroundProps) {
-  const canvasRef = useRef<HTMLDivElement | null>(null);
-
   const camera = useMemo(
     () => ({
       position: [0, 0, 1] as [number, number, number],
@@ -200,31 +195,11 @@ export function ShaderBackground({ className = "" }: ShaderBackgroundProps) {
     [],
   );
 
-  useGSAP(
-    () => {
-      if (!canvasRef.current) return;
-
-      gsap.set(canvasRef.current, {
-        filter: "blur(20px)",
-        scale: 1.1,
-        autoAlpha: 0.7,
-      });
-
-      gsap.to(canvasRef.current, {
-        filter: "blur(0px)",
-        scale: 1,
-        autoAlpha: 1,
-        duration: 1.5,
-        ease: "power3.out",
-        delay: 0.3,
-      });
-    },
-    { scope: canvasRef },
-  );
-
   return (
-    <div
-      ref={canvasRef}
+    <motion.div
+      initial={{ filter: "blur(20px)", scale: 1.1, opacity: 0.7 }}
+      animate={{ filter: "blur(0px)", scale: 1, opacity: 1 }}
+      transition={{ duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.3 }}
       className={`bg-black absolute inset-0 w-full h-full ${className}`}
       aria-hidden
     >
@@ -236,7 +211,7 @@ export function ShaderBackground({ className = "" }: ShaderBackgroundProps) {
       >
         <ShaderPlane />
       </Canvas>
-    </div>
+    </motion.div>
   );
 }
 

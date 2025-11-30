@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BadgeDollarSign,
   FileOutput,
@@ -8,7 +10,30 @@ import {
   Workflow,
   Zap,
 } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
+
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const featureVariants: Variants = {
+  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
+  },
+};
 
 export function FeaturesSection() {
   const features = [
@@ -62,11 +87,17 @@ export function FeaturesSection() {
     },
   ];
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 py-10 max-w-7xl mx-auto">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative z-10 py-10 max-w-7xl mx-auto"
+    >
       {features.map((feature, index) => (
         <Feature key={feature.title} {...feature} index={index} />
       ))}
-    </div>
+    </motion.div>
   );
 }
 
@@ -81,16 +112,14 @@ const Feature = ({
   icon: React.ReactNode;
   index: number;
 }) => {
-  // Last column (indices 3, 7) should have no right border
   const isLastColumn = index === 3 || index === 7;
 
   return (
-    <div
+    <motion.div
+      variants={featureVariants}
       className={cn(
         "flex flex-col py-10 relative group/feature",
-        // Right border only between columns (not on the last column)
         !isLastColumn && "lg:border-r border-white/10",
-        // Bottom border on top row
         index < 4 && "lg:border-b border-white/10",
       )}
     >
@@ -109,6 +138,6 @@ const Feature = ({
       <p className="text-sm text-white/70 max-w-xs relative z-10 px-10">
         {description}
       </p>
-    </div>
+    </motion.div>
   );
 };

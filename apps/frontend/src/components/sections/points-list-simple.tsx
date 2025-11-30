@@ -1,6 +1,23 @@
 "use client";
 
 import { X, Check } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+
+const containerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+};
 
 interface PointsListSimpleProps {
   points: string[];
@@ -11,9 +28,19 @@ export function PointsListSimple({ points, variant }: PointsListSimpleProps) {
   const isProblem = variant === "problem";
 
   return (
-    <ul className="space-y-4">
+    <motion.ul
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.5 }}
+      className="space-y-4"
+    >
       {points.map((point, index) => (
-        <li key={index} className="flex items-start gap-3">
+        <motion.li
+          key={index}
+          variants={itemVariants}
+          className="flex items-start gap-3"
+        >
           <span
             className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
               isProblem
@@ -30,8 +57,8 @@ export function PointsListSimple({ points, variant }: PointsListSimpleProps) {
           <span className="text-sm font-light leading-relaxed text-white/70">
             {point}
           </span>
-        </li>
+        </motion.li>
       ))}
-    </ul>
+    </motion.ul>
   );
 }
