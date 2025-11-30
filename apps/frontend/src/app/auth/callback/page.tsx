@@ -43,7 +43,9 @@ function AuthCallbackContent() {
 
             while (attempts < maxAttempts) {
               try {
-                const statusRes = await fetch(`http://localhost:${port}/callback/status`);
+                const statusRes = await fetch(
+                  `http://localhost:${port}/callback/status`,
+                );
                 if (statusRes.ok) {
                   const statusData = await statusRes.json();
 
@@ -60,12 +62,12 @@ function AuthCallbackContent() {
                     return;
                   }
                 }
-              } catch (error) {
+              } catch (_error) {
                 // Ignore polling errors and continue
               }
 
               attempts++;
-              await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+              await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
             }
 
             router.push(
