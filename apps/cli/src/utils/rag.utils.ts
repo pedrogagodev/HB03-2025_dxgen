@@ -1,5 +1,6 @@
 import type { GenerateRequest } from "@repo/ai";
 import type * as Rag from "@repo/rag";
+import { getRagEnvConfig } from "@repo/rag";
 import type { User } from "@supabase/supabase-js";
 
 /**
@@ -11,9 +12,13 @@ export function buildRagPipelineOptions(
   user: User,
   rootDir: string = process.cwd(),
 ): Rag.RagPipelineOptions {
+  const envConfig = getRagEnvConfig();
   // Optimized retrieval parameters
   // Use more documents for README to get better structure coverage
-  const topK = request.wizard.feature === "readme" ? 35 : 25;
+  const topK =
+    request.wizard.feature === "readme"
+      ? envConfig.topKReadme
+      : envConfig.topKDefault;
 
   return {
     rootDir,
