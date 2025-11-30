@@ -655,9 +655,6 @@ export async function generateDiagrams(params: {
 }): Promise<GenerateResult> {
   const { rootPath, style, documents, stack, projectContext } = params;
 
-  console.log("\n📊 Generating architecture diagrams...");
-  console.log(`  Documents: ${documents.length}`);
-
   if (documents.length === 0) {
     return {
       kind: "diagram",
@@ -669,25 +666,6 @@ No source files were provided to analyze. Cannot generate architecture diagrams 
 Please ensure the project has been properly scanned.
 `,
     };
-  }
-
-  const analysis = analyzeProjectArchitecture(documents, projectContext);
-  console.log(
-    `  Architecture: ${analysis.isMonorepo ? "Monorepo" : "Single Package"}`,
-  );
-  if (analysis.entryPoints.length > 0) {
-    console.log(`  Entry Points: ${analysis.entryPoints.join(", ")}`);
-  }
-  if (analysis.apps.length > 0) {
-    console.log(`  Apps: ${analysis.apps.map((a) => `${a.name} (${a.type})`).join(", ")}`);
-  }
-  if (analysis.packages.length > 0) {
-    console.log(`  Packages: ${analysis.packages.join(", ")}`);
-  }
-  if (analysis.externalServices.size > 0) {
-    console.log(
-      `  External Services: ${Array.from(analysis.externalServices).join(", ")}`,
-    );
   }
 
   const contextPrompt = buildDiagramContext(
@@ -720,8 +698,6 @@ Please ensure the project has been properly scanned.
 
     // Fix any invalid Mermaid syntax before returning
     const fixedContent = fixMermaidSyntax(content);
-
-    console.log("  ✅ Architecture diagrams generated successfully");
 
     return {
       kind: "diagram",

@@ -112,7 +112,7 @@ const batchRecords = (
         currentBatch = [];
       }
       console.warn(
-        `⚠️  Record ${record.id} excede o limite de tamanho (${recordSize} bytes). Tentando enviar mesmo assim.`,
+        `⚠️  Record ${record.id} exceeds the size limit (${recordSize} bytes). Trying to send anyway.`,
       );
       batches.push([record]);
       continue;
@@ -166,15 +166,10 @@ export async function buildIndex(
     try {
       await index.upsert(batch);
       totalUpserted += batch.length;
-      if (batches.length > 1) {
-        console.log(
-          `📦 Batch ${i + 1}/${batches.length}: ${batch.length} records enviados (${totalUpserted}/${records.length} total)`,
-        );
-      }
     } catch (error) {
       const err = error as Error;
       console.error(
-        `❌ Erro ao enviar batch ${i + 1}/${batches.length}:`,
+        `❌ Fail to upsert batch ${i + 1}/${batches.length}:`,
         err.message,
       );
       if (
@@ -182,7 +177,7 @@ export async function buildIndex(
         err.message.includes("too large")
       ) {
         console.log(
-          `🔄 Tentando dividir batch ${i + 1} em lotes menores...`,
+          `🔄 Trying to split batch ${i + 1} into smaller batches...`,
         );
         const halfSize = Math.ceil(batch.length / 2);
         const subBatches = [
@@ -196,7 +191,7 @@ export async function buildIndex(
             totalUpserted += subBatch.length;
           } catch (subError) {
             console.error(
-              `❌ Erro ao enviar sub-batch:`,
+              `❌ Fail to upsert sub-batch:`,
               (subError as Error).message,
             );
             throw subError;

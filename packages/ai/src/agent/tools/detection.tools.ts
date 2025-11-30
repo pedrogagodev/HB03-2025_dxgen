@@ -15,8 +15,6 @@ import { extractContent } from "../../utils/utils";
 export function createStackDetectorTool(documents: Document[]) {
   return tool(
     async () => {
-      console.log("  🔍 Agent: Detecting technology stack...");
-
       if (documents.length === 0) {
         return JSON.stringify({ language: "other", notes: "No documents to analyze" });
       }
@@ -47,7 +45,6 @@ export function createStackDetectorTool(documents: Document[]) {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]) as DetectedStack;
-        console.log(`     ✓ Detected: ${parsed.language}${parsed.framework ? ` + ${parsed.framework}` : ""}`);
         return JSON.stringify(parsed);
       }
 
@@ -70,8 +67,6 @@ export function createStackDetectorTool(documents: Document[]) {
 export function createApiDetectorTool(documents: Document[]) {
   return tool(
     async () => {
-      console.log("  🔍 Agent: Checking for API endpoints...");
-
       // More comprehensive endpoint patterns
       const endpointPatterns = [
         // Express/Node.js
@@ -155,7 +150,6 @@ export function createApiDetectorTool(documents: Document[]) {
           ? "No API files detected in the project"
           : `Found ${apiFilesFound.length} API-related files but only ${totalEndpointCount} endpoint(s) - need at least 2 endpoints`;
 
-        console.log(`     ✓ ${reason}`);
         return JSON.stringify({
           hasApi: false,
           apiType: null,
@@ -199,15 +193,14 @@ export function createApiDetectorTool(documents: Document[]) {
             endpointCount: number;
             notes: string;
           };
-          console.log(`     ✓ API detected: ${result.apiType} (${totalEndpointCount} endpoints in ${apiFilesFound.length} files)`);
           return JSON.stringify({
             ...result,
             endpointCount: totalEndpointCount,
             apiFiles: apiFilesFound,
           });
         }
-      } catch (error) {
-        console.log(`     ⚠️  LLM analysis failed, using heuristic: ${(error as Error).message}`);
+      } catch {
+        // LLM analysis failed, continue to fallback
       }
 
       // Fallback: we know we have APIs, just couldn't classify type
@@ -219,7 +212,6 @@ export function createApiDetectorTool(documents: Document[]) {
         notes: `Detected ${totalEndpointCount} endpoints across ${apiFilesFound.length} files`,
       };
 
-      console.log(`     ✓ ${result.notes}`);
       return JSON.stringify(result);
     },
     {
@@ -237,8 +229,6 @@ export function createApiDetectorTool(documents: Document[]) {
 export function createStructureAnalyzerTool(documents: Document[]) {
   return tool(
     async () => {
-      console.log("  🔍 Agent: Analyzing project structure...");
-
       const paths = new Set<string>();
       documents.forEach((doc) => {
         const metadata = (doc.metadata ?? {}) as Record<string, unknown>;
@@ -275,7 +265,6 @@ export function createStructureAnalyzerTool(documents: Document[]) {
         notes: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} project with ${uniquePaths.length} files`,
       };
 
-      console.log(`     ✓ Structure: ${result.complexity} (${result.fileCount} files)`);
       return JSON.stringify(result);
     },
     {

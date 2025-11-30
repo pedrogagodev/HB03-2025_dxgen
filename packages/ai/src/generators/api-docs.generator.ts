@@ -164,28 +164,15 @@ export async function generateApiDocs(params: {
 }): Promise<GenerateResult> {
   const { rootPath, style, documents, stack, projectContext } = params;
 
-  console.log("\n📡 Generating API documentation...");
-  console.log(`  Documents: ${documents.length}`);
-
   // GUARDRAIL 1: Detect actual API endpoints
   const detection = detectApiEndpoints(documents);
-  console.log(`  ${detection.reason}`);
 
   if (!detection.hasApi) {
-    console.log("  ❌ No API endpoints found - refusing to generate");
-    console.log("\n⚠️  This project does not appear to have any API endpoints.");
-    console.log("    API documentation requires actual HTTP endpoints to document.\n");
-    console.log("💡 Suggestions:");
-    console.log("   • Try generating a README instead: --feature readme");
-    console.log("   • Or generate a project summary: --feature summary");
-    console.log("   • For architecture overview: --feature diagram\n");
-    
     throw new Error("No API endpoints detected in the project. Cannot generate API documentation without actual endpoints.");
   }
 
   // GUARDRAIL 2: Ensure we have actual API code to analyze
   if (detection.apiFiles.length === 0) {
-    console.log("  ❌ No API-related source files found to analyze");
     throw new Error(`No API-related source files found. ${detection.reason}`);
   }
 
@@ -240,15 +227,12 @@ export async function generateApiDocs(params: {
 
     // GUARDRAIL 3: Check if LLM returned the "no API" signal
     if (content.trim() === "NO_API_FOUND" || content.includes("example.com")) {
-      console.log("  ❌ LLM could not find real API endpoints");
       throw new Error("Unable to extract real API endpoint information from the codebase. The AI could not confidently identify actual API routes.");
     }
 
     if (content.trim().length === 0) {
       throw new Error("Empty LLM response");
     }
-
-    console.log("  ✅ API documentation generated successfully");
 
     return {
       kind: "api-docs",

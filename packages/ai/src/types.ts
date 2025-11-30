@@ -99,9 +99,3 @@ export interface FormatContextOptions {
   maxEntries?: number;
   maxCharsPerEntry?: number;
 }
-
-export interface TokenUsage {
-  promptTokens: number;
-  completionTokens: number;
-  totalTokens: number;
-}
