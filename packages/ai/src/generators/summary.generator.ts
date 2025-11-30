@@ -92,9 +92,6 @@ export async function generateSummary(params: {
 }): Promise<GenerateResult> {
   const { rootPath, outputDir, style, documents, stack, projectContext } = params;
 
-  console.log("\n📝 Generating repository summary...");
-  console.log(`  Documents: ${documents.length}`);
-
   const contextPrompt = [
     `## PROJECT CONTEXT`,
     `- **Root Path**: ${rootPath}`,

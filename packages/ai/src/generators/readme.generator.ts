@@ -667,11 +667,6 @@ export async function generateReadme(params: {
 }): Promise<GenerateResult> {
   const { rootPath, outputDir, style, documents, stack, projectContext } = params;
 
-  console.log("\n📘 Generating README documentation...");
-  console.log(`  Documents: ${documents.length}`);
-  console.log(`  Selected: ${selectReadmeDocuments(documents).length}`);
-  console.log(`  Packages: ${projectContext?.packages.length ?? 0}`);
-
   // Build comprehensive context for LLM
   const contextSections = [
     buildProjectMetadataContext(projectContext, rootPath, outputDir, style, stack),

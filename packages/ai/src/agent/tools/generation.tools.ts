@@ -19,8 +19,6 @@ export function createReadmeGeneratorTool(
 ) {
   return tool(
     async ({ rootPath, outputDir, style }) => {
-      console.log("\n  📘 Agent: Generating README documentation...");
-
       const result = await generateReadme({
         rootPath,
         outputDir,
@@ -30,7 +28,6 @@ export function createReadmeGeneratorTool(
         projectContext,
       });
 
-      console.log("     ✓ README generated successfully");
       return JSON.stringify(result);
     },
     {
@@ -56,8 +53,6 @@ export function createApiDocsGeneratorTool(
 ) {
   return tool(
     async ({ rootPath, outputDir, style }) => {
-      console.log("\n  📡 Agent: Generating API documentation...");
-
       const result = await generateApiDocs({
         rootPath,
         outputDir,
@@ -67,7 +62,6 @@ export function createApiDocsGeneratorTool(
         projectContext,
       });
 
-      console.log("     ✓ API documentation generated successfully");
       return JSON.stringify(result);
     },
     {
@@ -93,8 +87,6 @@ export function createDiagramsGeneratorTool(
 ) {
   return tool(
     async ({ rootPath, outputDir, style }) => {
-      console.log("\n  📊 Agent: Generating architecture diagrams...");
-
       const result = await generateDiagrams({
         rootPath,
         outputDir,
@@ -104,7 +96,6 @@ export function createDiagramsGeneratorTool(
         projectContext,
       });
 
-      console.log("     ✓ Architecture diagrams generated successfully");
       return JSON.stringify(result);
     },
     {
@@ -130,8 +121,6 @@ export function createSummaryGeneratorTool(
 ) {
   return tool(
     async ({ rootPath, outputDir, style }) => {
-      console.log("\n  📝 Agent: Generating project summary...");
-
       const result = await generateSummary({
         rootPath,
         outputDir,
@@ -141,7 +130,6 @@ export function createSummaryGeneratorTool(
         projectContext,
       });
 
-      console.log("     ✓ Project summary generated successfully");
       return JSON.stringify(result);
     },
     {

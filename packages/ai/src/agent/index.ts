@@ -48,8 +48,6 @@ export async function createDocumentationAgent(
   stack: DetectedStack | undefined,
   projectContext: ProjectContext | undefined,
 ): Promise<ReturnType<typeof createAgent>> {
-  console.log("\n🤖 Initializing Documentation Agent...");
-
   // Create all tools for the agent
   const tools = [
     // Detection tools
@@ -69,7 +67,6 @@ export async function createDocumentationAgent(
     tools,
   });
 
-  console.log("   ✓ Agent initialized with 7 tools");
   return agent;
 }
 
@@ -89,9 +86,6 @@ export async function executeDocumentationAgent(
 ): Promise<GenerateResult> {
   const { wizard } = request;
 
-  console.log("\n🎯 Agent Mission: Generate", wizard.feature, "documentation");
-  console.log("   Style:", wizard.style || "default");
-
   // Create the agent
   const agent = await createDocumentationAgent(
     documents,
@@ -103,8 +97,6 @@ export async function executeDocumentationAgent(
   const agentPrompt = buildAgentPrompt(request);
 
   try {
-    console.log("\n💭 Agent is analyzing and planning...\n");
-
     // Invoke the agent
     const response = await agent.invoke({
       messages: [new HumanMessage(agentPrompt)],
@@ -122,7 +114,6 @@ export async function executeDocumentationAgent(
         try {
           const toolContent = msg.content?.toString() || "";
           const result = JSON.parse(toolContent) as GenerateResult;
-          console.log("\n✅ Agent completed the task successfully!");
           return result;
         } catch (parseError) {
           // Continue looking at other messages
@@ -141,7 +132,6 @@ export async function executeDocumentationAgent(
         if (jsonMatch) {
           try {
             const result = JSON.parse(jsonMatch[0]) as GenerateResult;
-            console.log("\n✅ Agent completed the task successfully!");
             return result;
           } catch (parseError) {}
         }
