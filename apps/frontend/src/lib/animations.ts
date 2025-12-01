@@ -3,7 +3,7 @@
  * Centralizadas para manter consistência em toda a aplicação
  */
 
-import type { Variants, Transition } from "framer-motion";
+import type { Transition, Variants } from "framer-motion";
 
 // ============================================
 // TRANSIÇÕES BASE
@@ -33,55 +33,55 @@ export const fastTransition: Transition = {
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: smoothTransition,
   },
 };
 
 export const fadeInUp: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 24,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: smoothTransition,
   },
 };
 
 export const fadeInDown: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: -24,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: smoothTransition,
   },
 };
 
 export const fadeInLeft: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     x: -24,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: smoothTransition,
   },
 };
 
 export const fadeInRight: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     x: 24,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: smoothTransition,
   },
@@ -92,25 +92,25 @@ export const fadeInRight: Variants = {
 // ============================================
 
 export const scaleIn: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     scale: 0.95,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     transition: springTransition,
   },
 };
 
 export const scaleInUp: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     scale: 0.95,
     y: 20,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     y: 0,
     transition: springTransition,
@@ -186,12 +186,12 @@ export const tapScale = {
 // ============================================
 
 export const navbarVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: -20,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       ...smoothTransition,
@@ -201,16 +201,16 @@ export const navbarVariants: Variants = {
 };
 
 export const mobileMenuVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     height: 0,
     transition: {
       duration: 0.2,
       ease: "easeInOut",
     },
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     height: "auto",
     transition: {
       duration: 0.3,
@@ -235,13 +235,13 @@ export const heroContainerVariants: Variants = {
 };
 
 export const heroItemVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 30,
     filter: "blur(10px)",
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     filter: "blur(0px)",
     transition: {
@@ -257,13 +257,13 @@ export const heroItemVariants: Variants = {
 // ============================================
 
 export const cardVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 20,
     scale: 0.98,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     scale: 1,
     transition: springTransition,
@@ -275,12 +275,12 @@ export const cardVariants: Variants = {
 // ============================================
 
 export const sectionVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 40,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       ...smoothTransition,
