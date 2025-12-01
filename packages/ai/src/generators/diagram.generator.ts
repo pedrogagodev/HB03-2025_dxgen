@@ -11,25 +11,25 @@ import type {
 } from "../types";
 import { extractContent } from "../utils/utils";
 
-const DIAGRAM_SYSTEM_PROMPT = `You are an expert software architect specializing in creating clear system architecture diagrams using Mermaid.
+const DIAGRAM_SYSTEM_PROMPT = `You are an expert software architect specializing in writing clear, concise architecture documentation with Mermaid diagrams.
 
 ## YOUR MISSION
 
-Generate **clear, accurate architecture diagrams** that:
-- Show high-level system architecture based on ACTUAL project structure
-- Illustrate component relationships and data flow from REAL code
-- Use Mermaid syntax for easy rendering
-- Document key integration points found in the codebase
-- Explain design patterns and architectural decisions detected in the code
+Produce an **architecture document** (not just raw diagrams) that:
+- Explains the system at a high level.
+- Shows the **entire execution flow** from entry points through core components to external services and back.
+- Uses a **small number of complementary diagrams** instead of many redundant ones.
 
 ## OUTPUT FORMAT RULES
 
-1. Output PURE MARKDOWN only (no code fences around your response)
-2. Use Mermaid diagram syntax with VALID node IDs
-3. Extract REAL architecture from the provided codebase
-4. NEVER use generic placeholders like "Client Application", "API Server", "Database"
-5. Use ACTUAL component names from the project (packages, apps, modules found in PROJECT CONTEXT)
-6. Reference REAL files and modules from the provided codebase
+1. Output **pure Markdown** (headings, paragraphs, lists, and \`mermaid\` code fences).
+2. Use Mermaid diagrams with **VALID node IDs**.
+3. **Use ONLY real elements** from the project context:
+   - Real apps, packages, modules, and file paths.
+   - External services that can be inferred from dependencies.
+4. **Avoid redundancy**:
+   - Do **not** create multiple diagrams that show essentially the same structure.
+   - Text should explain **purpose, responsibilities, and decisions**, not restate every edge in the diagrams.
 
 ## MERMAID SYNTAX REQUIREMENTS
 
@@ -41,206 +41,94 @@ graph TB
     CLI[apps/cli]
     Frontend[apps/frontend]
     RepoAI["@repo/ai"]
-    RepoRAG["@repo/rag"]
     
     CLI --> RepoAI
-    Frontend --> RepoAI
-    RepoAI --> RepoRAG
 \`\`\`
 
-❌ **WRONG Mermaid Syntax** (will cause parse errors):
+❌ **WRONG Mermaid Syntax**:
 \`\`\`mermaid
 graph TB
     @repo/ai --> @repo/rag  ❌ Invalid node ID
-    apps/cli --> @repo/ai   ❌ Invalid node ID
 \`\`\`
 
-**Rules for Node IDs**:
-- Use camelCase or PascalCase: RepoAI, appsCli, frontendApp
-- Put actual names in brackets: RepoAI["@repo/ai"]
-- For paths with slashes, use descriptive IDs: AppsCli["apps/cli"]
-- For files, remove extensions: DiagramGen["diagram.generator.ts"]
+## DOCUMENT STRUCTURE
 
-## DIAGRAM STRUCTURE
+### 1. Introduction & High-Level Overview
+- 1–3 short paragraphs summarizing:
+  - What this system does.
+  - The main apps/packages (from PROJECT CONTEXT).
+  - Key external services (from dependencies).
+- Mention if this is a monorepo or single package and what the main entry points are.
 
-### 1. System Overview
-Brief description of the ACTUAL project architecture based on the real structure provided.
+### 2. System Context & Architecture (Single Main Diagram)
+Create **one comprehensive Mermaid diagram** (typically \`graph TB\`) that visualizes the main structural view.
 
-### 2. High-Level Architecture Diagram
-**CRITICAL**: Use the **Entry Points** information from PROJECT CONTEXT to determine the client layer.
-- If Entry Points contains CLI, the client is the CLI application
-- If Entry Points contains Frontend, the client is the frontend application
-- Show the ACTUAL flow from entry points through the system
+**Requirements:**
+- **Entry Points**: Start with the Client/CLI/Frontend/API entry points from PROJECT CONTEXT.
+- **Internal Structure**: Show how these entry points connect to internal packages/modules.
+- **External Integrations**: Connect to databases, queues, and external APIs **only if they appear in dependencies**.
+- **Completeness Check**: Ensure there is a visible path from each entry point to core logic and to any external services it uses.
 
-Use REAL package/app/module names from the PROJECT CONTEXT.
-
-**Remember**: Use valid Mermaid node IDs (alphanumeric) and put display names in brackets.
-
-\`\`\`mermaid
-graph TB
-    subgraph "Entry Points (from PROJECT CONTEXT)"
-        ActualEntryPoint["The actual entry point detected"]
-    end
-    
-    subgraph "Backend/Core Layer"
-        CoreModule["Actual Core Module"]
-        ServiceLayer["Actual Service"]
-    end
-    
-    subgraph "External Services (from dependencies)"
-        RealService[("Actual Service from package.json")]
-    end
-    
-    ActualEntryPoint --> CoreModule
-    CoreModule --> ServiceLayer
-    ServiceLayer --> RealService
-\`\`\`
-
-**EXAMPLE with Real Names** (if project has CLI as entry point):
 \`\`\`mermaid
 graph TB
     subgraph "Entry Points"
         CLI["apps/cli"]
     end
     
-    subgraph "Packages"
+    subgraph "Core Packages"
         RepoAI["@repo/ai"]
-        RepoRAG["@repo/rag"]
     end
     
-    subgraph "External Services"
-        Supabase[("Supabase")]
-        OpenAI[("OpenAI")]
+    subgraph "Infrastructure"
+        OpenAI[("OpenAI API")]
     end
     
     CLI --> RepoAI
-    RepoAI --> RepoRAG
-    RepoRAG --> OpenAI
-    CLI --> Supabase
+    RepoAI --> OpenAI
 \`\`\`
 
-### 3. Component/Module Diagram
-Show ACTUAL modules and their relationships from the codebase.
+Add 2–4 sentences under the diagram briefly explaining how these layers relate (without narrating every single arrow).
 
-**Remember**: Use valid node IDs without special characters.
+### 3. Core End-to-End Flow (Behavioral View)
+Select the **most important user journey or request flow** and visualize it end-to-end.
+For example: "User runs CLI command → Agent resolves project context → LLM client calls provider → Response post-processed → Result returned."
 
-\`\`\`mermaid
-graph LR
-    subgraph "Package: [Real Package Name]"
-        FileA["actual-file.ts"]
-        FileB["another-file.ts"]
-    end
-    
-    subgraph "Package: [Real Package Name 2]"
-        FileC["real-module.ts"]
-    end
-    
-    FileA --> FileB
-    FileB --> FileC
-\`\`\`
+**Requirements:**
+- Trace the flow: **Input → Processing → Storage/External Services → Output**.
+- Use:
+  - A **Sequence Diagram** (\`sequenceDiagram\`) if temporal order and actors are important, **or**
+  - A **Flowchart** (\`graph LR\`) if the structural path is more important.
+- Write a short paragraph before or after the diagram explaining **what scenario** this flow represents and why it is important.
 
-**EXAMPLE with Real Names** (if project has @repo/ai package):
-\`\`\`mermaid
-graph LR
-    subgraph "Package: @repo/ai"
-        AgentIndex["agent/index.ts"]
-        Generators["generators/"]
-        LLMClient["llm/client.ts"]
-    end
-    
-    subgraph "Package: @repo/rag"
-        Retriever["retriever.ts"]
-        Embeddings["embeddings.ts"]
-    end
-    
-    AgentIndex --> Generators
-    AgentIndex --> LLMClient
-    Generators --> Retriever
-\`\`\`
+### 4. Optional Focused Views (Only If Non-Redundant)
+Optionally add **up to 2 additional diagrams** only if each adds **new information** that is not obvious from the previous diagrams, such as:
+- Internal module structure of a critical package.
+- A dedicated view of how one specific external service is integrated.
 
-### 4. Data Flow Diagram
-Show how data flows through REAL components found in the code.
-**Use the Entry Points from PROJECT CONTEXT as the starting point of the flow.**
+Rules for optional diagrams:
+- Do **not** recreate the same System Context diagram with a slightly different layout.
+- Each extra diagram must have a **clear purpose statement** (1–2 sentences) that explains what new perspective it adds.
 
-### 5. Key Components
-Document ACTUAL components found in the code:
-- List REAL files and their purposes
-- Reference ACTUAL classes/functions from the codebase
-- Mention ACTUAL dependencies (from package.json in PROJECT CONTEXT)
+### 5. Architectural Summary & Coverage Check
+- Summarize, in a few bullet points:
+  - Main apps and what they are responsible for.
+  - Key internal packages and their roles.
+  - Important external services and how they are used.
+- Add a **Coverage Check** bullet list:
+  - Confirm that all major **entry points** from PROJECT CONTEXT appear in at least one diagram.
+  - Confirm that main **external services** (from dependencies) appear where relevant.
+  - If any major component from the context is intentionally omitted, briefly say why.
 
-### 6. Design Patterns
-Architectural patterns detected in the ACTUAL code:
-- Monorepo structure (if turbo.json or workspaces exist in PROJECT CONTEXT)
-- Layered architecture (if clear separation exists in file structure)
-- Other patterns based on actual folder structure
+## EXTRACTION & VERIFICATION GUIDELINES
 
-## EXTRACTION GUIDELINES
-
-From the PROJECT CONTEXT provided below:
-1. **Use the Entry Points field** - this tells you what the actual client/starting point is (CLI, Frontend, Backend API, etc.)
-2. **Use the project structure tree** - map ACTUAL directories and files shown
-3. **Use package.json data** - reference REAL package names and dependencies listed
-4. **Use detected stack** - incorporate actual framework/language mentioned
-5. **Analyze file paths in documents** - understand the real organization
-6. **Use External Services (from dependencies)** - ONLY show services that are listed there, not generic placeholders
-7. **Look for real patterns**:
-   - Is this a monorepo? (check for workspaces, turbo.json, apps/, packages/ folders)
-   - What are the main apps/packages? (from structure tree provided)
-   - What external services exist? (ONLY from External Services field)
-   - What are the key modules? (from file paths and import analysis)
-
-## CRITICAL REQUIREMENTS
-
-- **ALWAYS** check the Entry Points field to determine the actual client/entry point
-- Reference ACTUAL file paths from the PROJECT CONTEXT (e.g., the real paths shown)
-- Use REAL package names from the PROJECT CONTEXT (e.g., actual package.json names)
-- Mention REAL dependencies from PROJECT CONTEXT (e.g., actual package.json dependencies)
-- Show REAL relationships based on imports and usage patterns in the code
-- **ONLY** show external services that are explicitly listed in "External Services (from dependencies)"
-- DO NOT invent or assume external services like "PostgreSQL", "Redis", etc. unless they're in the dependencies list
-
-## MERMAID SYNTAX - CRITICAL RULES
-
-**ALWAYS follow these Mermaid rules to avoid parse errors:**
-
-1. **Node IDs must be alphanumeric** (letters, numbers, underscores only)
-   - ✅ Good: RepoAI, appsCli, frontendApp, DiagramGen
-   - ❌ Bad: @repo/ai, apps/cli, @app, my-service
-
-2. **Display names go in brackets or quotes**
-   - ✅ Good: RepoAI["@repo/ai"] or AppsCli["apps/cli"]
-   - ❌ Bad: @repo/ai (used directly as node ID)
-
-3. **For file paths with slashes, create descriptive IDs**
-   - ✅ Good: AppsCliCommands["apps/cli/src/commands/"]
-   - ❌ Bad: apps/cli/src/commands/ (slashes not allowed in IDs)
-
-4. **For packages with @ or scopes, remove special chars**
-   - ✅ Good: RepoAI["@repo/ai"], NextCore["next"], SupabaseClient["@supabase/client"]
-   - ❌ Bad: @repo/ai, @supabase/client (@ not allowed in IDs)
-
-5. **Always define nodes before using them in connections**
-   - ✅ Good: Define CLI["apps/cli"] then use CLI --> RepoAI
-   - ❌ Bad: Using CLI in connection without defining it first
-
-**Example of CORRECT syntax for a project with @repo/ai and apps/cli:**
-\`\`\`mermaid
-graph TB
-    CLI["apps/cli"]
-    Frontend["apps/frontend"]
-    RepoAI["@repo/ai"]
-    RepoRAG["@repo/rag"]
-    Supabase[("Supabase")]
-    Pinecone[("Pinecone")]
-    
-    CLI --> RepoAI
-    Frontend --> RepoAI
-    RepoAI --> RepoRAG
-    RepoRAG --> Pinecone
-    RepoAI --> Supabase
-\`\`\`
-
-Now generate comprehensive architecture diagrams based on the provided PROJECT CONTEXT and ACTUAL codebase structure below.`;
+1. **Use Entry Points** from PROJECT CONTEXT as the starting nodes of your flows.
+2. **Trace imports and dependencies** to see which internal packages/modules each entry point touches.
+3. **Identify leaf nodes** where data ultimately goes (external APIs, databases, queues, files).
+4. **Connect the chain**: Entry → Intermediaries → Leaf nodes, making sure there are no unexplained gaps.
+5. **Self-check**: Before finalizing, mentally verify that:
+   - Every important area of the project structure is either mentioned in text or visible in a diagram.
+   - Diagrams do not duplicate each other, but instead show different **levels or perspectives** of the same system.
+`;
 
 /**
  * Fix invalid Mermaid node IDs that contain special characters
@@ -300,23 +188,24 @@ function mapDependencyToService(depName: string): string | null {
   if (depName === "mongodb" || depName === "mongoose") return "MongoDB";
   if (depName === "pg" || depName === "postgres") return "PostgreSQL";
   if (depName === "mysql" || depName === "mysql2") return "MySQL";
-  
+
   // Vector/AI services
   if (depName.includes("pinecone")) return "Pinecone";
   if (depName.includes("openai")) return "OpenAI";
   if (depName.includes("anthropic")) return "Anthropic";
-  if (depName === "langchain" || depName.includes("@langchain")) return "LangChain";
-  
+  if (depName === "langchain" || depName.includes("@langchain"))
+    return "LangChain";
+
   // Cache/Queue
   if (depName === "redis" || depName.includes("ioredis")) return "Redis";
   if (depName.includes("rabbitmq")) return "RabbitMQ";
   if (depName.includes("kafka")) return "Kafka";
-  
+
   // Cloud providers
   if (depName.includes("aws-sdk") || depName.includes("@aws-sdk")) return "AWS";
   if (depName.includes("@google-cloud")) return "Google Cloud";
   if (depName.includes("@azure")) return "Azure";
-  
+
   return null;
 }
 
@@ -324,7 +213,10 @@ function mapDependencyToService(depName: string): string | null {
  * Detect app type based on package.json and structure
  * Priority: dependencies > scripts > bin field > folder name
  */
-function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend" | "backend" | "unknown" {
+function detectAppType(
+  appName: string,
+  pkg?: ProjectPackage,
+): "cli" | "frontend" | "backend" | "unknown" {
   // PRIORITY 1: Check dependencies first (most reliable)
   if (pkg?.dependencies || pkg?.devDependencies) {
     const allDeps = [
@@ -332,7 +224,7 @@ function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend
       ...Object.keys(pkg?.devDependencies || {}),
     ];
     const depsStr = allDeps.join(",").toLowerCase();
-    
+
     // Frontend frameworks - HIGHEST PRIORITY
     // Next.js, React, Vue, Svelte, Angular, Vite
     if (
@@ -345,7 +237,7 @@ function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend
     ) {
       return "frontend";
     }
-    
+
     // Backend frameworks
     if (
       depsStr.includes("express") ||
@@ -356,7 +248,7 @@ function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend
     ) {
       return "backend";
     }
-    
+
     // CLI tools (only if no frontend/backend indicators)
     if (
       depsStr.includes("commander") ||
@@ -367,11 +259,11 @@ function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend
       return "cli";
     }
   }
-  
+
   // PRIORITY 2: Check scripts
   if (pkg?.scripts) {
     const scriptsStr = JSON.stringify(pkg.scripts).toLowerCase();
-    
+
     // Frontend indicators in scripts
     if (
       scriptsStr.includes("next dev") ||
@@ -382,7 +274,7 @@ function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend
     ) {
       return "frontend";
     }
-    
+
     // Backend indicators in scripts
     if (
       scriptsStr.includes("express") ||
@@ -392,19 +284,29 @@ function detectAppType(appName: string, pkg?: ProjectPackage): "cli" | "frontend
       return "backend";
     }
   }
-  
+
   // PRIORITY 3: Check bin field (only for true CLI tools)
   // But ONLY if we haven't detected it as frontend/backend above
   if (pkg?.bin) {
     return "cli";
   }
-  
+
   // PRIORITY 4: Fallback to name-based detection (least reliable)
   const lowerName = appName.toLowerCase();
-  if (lowerName.includes("frontend") || lowerName.includes("web") || lowerName.includes("ui")) return "frontend";
-  if (lowerName.includes("backend") || lowerName.includes("api") || lowerName.includes("server")) return "backend";
+  if (
+    lowerName.includes("frontend") ||
+    lowerName.includes("web") ||
+    lowerName.includes("ui")
+  )
+    return "frontend";
+  if (
+    lowerName.includes("backend") ||
+    lowerName.includes("api") ||
+    lowerName.includes("server")
+  )
+    return "backend";
   if (lowerName.includes("cli")) return "cli";
-  
+
   return "unknown";
 }
 
@@ -422,7 +324,10 @@ function analyzeProjectArchitecture(
   keyDirectories: Set<string>;
   entryPoints: string[];
 } {
-  const apps = new Map<string, { name: string; type: "cli" | "frontend" | "backend" | "unknown" }>();
+  const apps = new Map<
+    string,
+    { name: string; type: "cli" | "frontend" | "backend" | "unknown" }
+  >();
   const packages = new Set<string>();
   const externalServices = new Set<string>();
   const keyDirectories = new Set<string>();
@@ -433,8 +338,10 @@ function analyzeProjectArchitecture(
       if (node.name === "apps" && node.children) {
         for (const app of node.children) {
           // Find the package for this app
-          const appPkg = projectContext.packages.find((p) => 
-            p.path.includes(`apps/${app.name}`) || p.path === `apps/${app.name}`
+          const appPkg = projectContext.packages.find(
+            (p) =>
+              p.path.includes(`apps/${app.name}`) ||
+              p.path === `apps/${app.name}`,
           );
           const appType = detectAppType(app.name, appPkg);
           apps.set(app.name, { name: app.name, type: appType });
@@ -456,7 +363,7 @@ function analyzeProjectArchitecture(
         ...Object.keys(pkg.dependencies || {}),
         ...Object.keys(pkg.devDependencies || {}),
       ];
-      
+
       for (const dep of allDeps) {
         const service = mapDependencyToService(dep);
         if (service) {
@@ -475,13 +382,13 @@ function analyzeProjectArchitecture(
   // Determine entry points based on app types
   const entryPoints: string[] = [];
   const appsArray = Array.from(apps.values());
-  
+
   if (isMonorepo && appsArray.length > 0) {
     // For monorepo: prioritize CLI and Frontend as entry points
     const cliApps = appsArray.filter((a) => a.type === "cli");
     const frontendApps = appsArray.filter((a) => a.type === "frontend");
     const backendApps = appsArray.filter((a) => a.type === "backend");
-    
+
     // Add entry points in priority order
     if (cliApps.length > 0) {
       entryPoints.push(...cliApps.map((a) => `apps/${a.name} (CLI)`));
@@ -489,7 +396,11 @@ function analyzeProjectArchitecture(
     if (frontendApps.length > 0) {
       entryPoints.push(...frontendApps.map((a) => `apps/${a.name} (Frontend)`));
     }
-    if (backendApps.length > 0 && cliApps.length === 0 && frontendApps.length === 0) {
+    if (
+      backendApps.length > 0 &&
+      cliApps.length === 0 &&
+      frontendApps.length === 0
+    ) {
       // Only show backend as entry point if there's no CLI or frontend
       entryPoints.push(...backendApps.map((a) => `apps/${a.name} (API)`));
     }
@@ -498,7 +409,7 @@ function analyzeProjectArchitecture(
     const rootPkg = projectContext.packages.find((p) => p.path === ".");
     if (rootPkg) {
       const rootType = detectAppType("root", rootPkg);
-      
+
       if (rootType === "frontend") {
         entryPoints.push("Frontend Application");
       } else if (rootType === "cli") {
@@ -559,7 +470,9 @@ function buildDiagramContext(
 
   if (analysis.isMonorepo) {
     if (analysis.apps.length > 0) {
-      const appsInfo = analysis.apps.map((a) => `${a.name} (${a.type})`).join(", ");
+      const appsInfo = analysis.apps
+        .map((a) => `${a.name} (${a.type})`)
+        .join(", ");
       parts.push(`- **Apps**: ${appsInfo}`);
     }
     if (analysis.packages.length > 0) {

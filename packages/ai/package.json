@@ -11,7 +11,8 @@
         }
     },
     "dependencies": {
-        "@repo/rag": "0.0.1"
+        "@repo/rag": "0.0.1",
+        "langsmith": "^0.3.82"
     },
     "devDependencies": {
         "@types/node": "^20.0.0"

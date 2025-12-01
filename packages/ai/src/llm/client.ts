@@ -61,6 +61,8 @@ export async function invokeLLM({
   prompt,
   context,
   maxContextTokens,
+  tags,
+  metadata,
 }: InvokeOptions) {
   const finalContext =
     context && maxContextTokens ? context.slice(0, maxContextTokens) : context;
@@ -69,7 +71,10 @@ export async function invokeLLM({
     ? [...prompt, new HumanMessage(`Context:\n${finalContext}`)]
     : prompt;
 
-  const response = await model.invoke(finalMessages);
+  const response = await model.invoke(finalMessages, {
+    tags,
+    metadata,
+  });
 
   return response;
 }

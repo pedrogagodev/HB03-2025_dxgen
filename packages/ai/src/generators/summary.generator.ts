@@ -22,6 +22,8 @@ Generate a **comprehensive repository summary** that:
 2. Use ONLY real data from the provided codebase
 3. NEVER use placeholders
 4. Be comprehensive but concise
+5. When describing packages, directories, or modules, you MUST ONLY mention ones that are explicitly present in the "PROJECT CONTEXT", "GROUND TRUTH CONSTRAINTS", or "CODEBASE SAMPLE" sections. Do not guess or infer typical structures (like \`tests\`, \`e2e\`, \`examples\`, \`benchmark\`, etc.) unless they actually appear in those sections.
+6. If some information (like tests, CI, deployment, or extra packages) is not clearly present in the provided context, either omit it or explicitly say that it is **not described in the available codebase context** instead of inventing details.
 
 ## SUMMARY STRUCTURE
 
@@ -92,29 +94,85 @@ export async function generateSummary(params: {
 }): Promise<GenerateResult> {
   const { rootPath, outputDir, style, documents, stack, projectContext } = params;
 
-  const contextPrompt = [
-    `## PROJECT CONTEXT`,
+  const contextLines: string[] = [];
+
+  contextLines.push(
+    "## PROJECT CONTEXT",
     `- **Root Path**: ${rootPath}`,
     `- **Output Directory**: ${outputDir}`,
     `- **Style**: ${style || "Comprehensive technical summary"}`,
-    stack ? `- **Stack**: ${stack.language}${stack.framework ? ` + ${stack.framework}` : ""}` : "",
-    projectContext?.packages.length
-      ? `- **Packages**: ${projectContext.packages.map((p) => p.name || p.path).join(", ")}`
-      : "",
+  );
+
+  if (stack) {
+    contextLines.push(
+      `- **Stack**: ${stack.language}${stack.framework ? ` + ${stack.framework}` : ""}`,
+    );
+  }
+
+  if (projectContext?.packages?.length) {
+    contextLines.push(
+      `- **Packages**: ${projectContext.packages
+        .map((p) => p.name || p.path)
+        .join(", ")}`,
+    );
+  }
+
+  if (projectContext) {
+    contextLines.push(
+      "",
+      "## GROUND TRUTH CONSTRAINTS",
+      "",
+      "Only refer to packages, modules, and directories that are explicitly listed below or that appear in the codebase sample.",
+      "If a typical directory (like `tests`, `e2e`, `examples`, or `benchmark`) does not appear here or in the sample, treat it as **not present** and do not mention it.",
+    );
+
+    if (projectContext.packages?.length) {
+      contextLines.push(
+        "",
+        "### Detected Packages (authoritative list)",
+        ...projectContext.packages.map((pkg) => {
+          const name = pkg.name || "(no name in package.json)";
+          const description = pkg.description ? ` — ${pkg.description}` : "";
+          return `- \`${name}\` at \`${pkg.path}\`${description}`;
+        }),
+      );
+    }
+
+    if (projectContext.structure?.length) {
+      contextLines.push(
+        "",
+        "### Top-level Structure (authoritative list)",
+        ...projectContext.structure.map((node) => {
+          const kind = node.type === "dir" ? "dir" : "file";
+          return `- ${kind}: \`${node.path}\``;
+        }),
+      );
+    }
+  }
+
+  contextLines.push(
     "",
     "## PROJECT OVERVIEW",
     "",
-    projectContext?.packages[0]?.description
-      ? `Project Description: ${projectContext.packages[0].description}`
-      : "",
-    "",
+  );
+
+  if (projectContext?.packages?.[0]?.description) {
+    contextLines.push(
+      `Project Description: ${projectContext.packages[0].description}`,
+      "",
+    );
+  }
+
+  contextLines.push(
     "## CODEBASE SAMPLE",
     "",
     formatContext(documents.slice(0, 35), {
       maxEntries: 35,
       maxCharsPerEntry: 1500,
     }),
-  ].filter(Boolean).join("\n");
+  );
+
+  const contextPrompt = contextLines.join("\n");
 
   const prompt = [
     new SystemMessage(SUMMARY_SYSTEM_PROMPT),
