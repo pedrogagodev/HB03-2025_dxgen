@@ -23,7 +23,6 @@ export async function getGenerateAnswers(): Promise<GenerateAnswers | null> {
           message: "What types of documentation do you want to generate?",
           choices: [
             { title: "README", value: "readme" },
-            { title: "API Docs", value: "api-docs" },
             { title: "Diagrams", value: "diagram" },
             { title: "Repository Summary", value: "summary" },
           ],

@@ -1,6 +1,6 @@
 export interface GenerateAnswers {
   outputDir: string;
   sync: boolean;
-  feature: "readme" | "api-docs" | "diagram" | "summary";
+  feature: "readme" | "diagram" | "summary";
   style: string;
 }
