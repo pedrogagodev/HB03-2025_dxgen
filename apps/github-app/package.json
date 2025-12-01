@@ -1,0 +1,34 @@
+{
+  "name": "@repo/github-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GitHub App for automatic PR documentation generation",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "PORT=${PORT:-3001} tsx src/start-server.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "lint": "biome check .",
+    "test:setup": "tsx scripts/test-setup.ts",
+    "test:compile": "tsc --noEmit",
+    "test:server": "tsx scripts/test-server.ts",
+    "test:webhook": "tsx scripts/test-webhook.ts",
+    "setup:env": "tsx scripts/setup-env.ts"
+  },
+  "dependencies": {
+    "@repo/ai": "*",
+    "@repo/rag": "*",
+    "probot": "^13.3.8",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

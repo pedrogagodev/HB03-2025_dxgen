@@ -18,20 +18,24 @@ export interface GenerateOptions {
 
 /**
  * AI Agent Documentation Generation
- * 
+ *
  * Uses an intelligent agent that:
  * 1. Analyzes the codebase with detection tools
  * 2. Validates requests with guardrails
  * 3. Generates appropriate documentation
  * 4. Suggests alternatives when needed
- * 
+ *
  * Pipeline: User Request → Agent Analysis → Tool Use → Documentation
  */
 export async function runGenerateCommand(
   request: GenerateRequest,
   options: GenerateOptions,
 ): Promise<GenerateResult> {
-  const { documents, stack: providedStack, projectContext: providedContext } = options;
+  const {
+    documents,
+    stack: providedStack,
+    projectContext: providedContext,
+  } = options;
 
   // Step 1: Auto-detect stack if not provided (for context)
   let stack = providedStack;
@@ -69,3 +73,8 @@ export type * from "./types";
 export * from "./writers";
 export { buildProjectContext };
 
+// Export generators
+export { generateSummary } from "./generators/summary.generator";
+export { generateReadme } from "./generators/readme.generator";
+export { generateApiDocs } from "./generators/api-docs.generator";
+export { generateDiagrams } from "./generators/diagram.generator";

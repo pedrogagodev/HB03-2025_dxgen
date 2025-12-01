@@ -92,7 +92,8 @@ export async function generateSummary(params: {
   stack?: DetectedStack;
   projectContext?: ProjectContext;
 }): Promise<GenerateResult> {
-  const { rootPath, outputDir, style, documents, stack, projectContext } = params;
+  const { rootPath, outputDir, style, documents, stack, projectContext } =
+    params;
 
   const contextLines: string[] = [];
 
@@ -150,11 +151,7 @@ export async function generateSummary(params: {
     }
   }
 
-  contextLines.push(
-    "",
-    "## PROJECT OVERVIEW",
-    "",
-  );
+  contextLines.push("", "## PROJECT OVERVIEW", "");
 
   if (projectContext?.packages?.[0]?.description) {
     contextLines.push(
@@ -209,4 +206,3 @@ export async function generateSummary(params: {
     };
   }
 }
-
