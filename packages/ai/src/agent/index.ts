@@ -100,9 +100,21 @@ export async function executeDocumentationAgent(
 
   try {
     // Invoke the agent
-    const response = await agent.invoke({
-      messages: [new HumanMessage(agentPrompt)],
-    });
+    const response = await agent.invoke(
+      {
+        messages: [new HumanMessage(agentPrompt)],
+      },
+      {
+        runName: "dxgen-agent",
+        tags: ["dxgen", wizard.feature],
+        metadata: {
+          projectRoot: request.project.rootPath,
+          outputDir: wizard.outputDir,
+          feature: wizard.feature,
+          style: wizard.style,
+        },
+      },
+    );
 
     // Extract the result - check for tool calls first
     const messages = response.messages;

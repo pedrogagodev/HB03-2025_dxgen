@@ -93,6 +93,8 @@ export interface InvokeOptions {
   prompt: BaseMessage[];
   context?: string;
   maxContextTokens?: number;
+  tags?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface FormatContextOptions {
